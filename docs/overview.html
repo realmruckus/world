@@ -1,0 +1,8 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>WORLD 模式总览</title><link rel="stylesheet" href="../styles.css"></head><body><header class="site-header"><a class="brand" href="../index.html">Realm Ruckus WORLD</a><nav><a href="./index.html">文档目录</a></nav></header><main class="page"><p class="eyebrow">Design reference</p><h1>WORLD 模式总览</h1><p class="lead">WORLD 是以卡牌和事件选择作为交互语言的异步共享世界怪物角色扮演与区域争夺游戏。</p><h2>核心循环</h2><pre>选择怪物与地点
+→ 选择狩猎、采集、探索、侦查、进攻等行动
+→ Event Composer 选择结构化事件
+→ 玩家作出选择
+→ Effect 修改怪物卡、资源、关系与世界
+→ World Tick 推进
+→ 看到其他玩家在相同进度留下的痕迹
+→ 驻守、合作或抢夺地点</pre><h2>长期状态</h2><ul><li>账号共享：World Tick、金币、材料、仓库、领地、怪物栏位、图鉴与世界事件记录。</li><li>怪物独立：种族、等级、属性、技能、特性、经历、关系、装备、伤势、位置与状态。</li></ul><h2>卡牌职责</h2><table><tr><th>类型</th><th>职责</th></tr><tr><td>行动</td><td>狩猎、探索、采集、侦查、驻守、进攻、撤退等选择。</td></tr><tr><td>技能</td><td>由种族、经历与成长解锁，改变事件条件和结果。</td></tr><tr><td>装备</td><td>提供属性、行动修正、特殊选项或地点适应能力。</td></tr><tr><td>道具</td><td>一次性改变事件、风险或奖励。</td></tr><tr><td>经历</td><td>记录重大事件并影响后续文本与规则。</td></tr></table><h2>多人世界</h2><p>WORLD 不要求实时位置、实时战斗或多人同屏。玩家通过追加式世界事件相互影响；地点控制、设施、防守快照和异步世界痕迹在查看者达到对应 Tick 后可见。</p><h2>经济与成长</h2><p>金币、材料、装备、驻军维护、地点产出和进攻损失形成循环。所有数值必须通过 Simulation 验证通胀、滚雪球、地点价值和新玩家追赶能力。</p><h2>边界</h2><p>本页描述 WORLD 产品方向。通用 Mechanic、Effect 约定、产品元数据和长期项目基线仍由 Core 维护；WORLD 的应用、产品专属规则、内容、网站、引擎适配和版本迭代由本仓库维护。</p></main></body></html>
