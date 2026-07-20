@@ -30,6 +30,7 @@ const results = [];
 const output = document.querySelector('#test-results');
 const summary = document.querySelector('#test-summary');
 const runButton = document.querySelector('#run-tests');
+runButton.dataset.bound = 'true';
 
 function equal(left, right) {
   return JSON.stringify(left) === JSON.stringify(right);
