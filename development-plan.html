@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Realm Ruckus WORLD MVP 模块化开发计划">
+  <title>WORLD MVP 开发计划</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="./index.html">Realm Ruckus WORLD</a>
+    <nav aria-label="主导航">
+      <a href="./play.html">MVP</a>
+      <a href="./development-plan.html">开发计划</a>
+      <a href="./architecture.html">架构</a>
+      <a href="./docs/index.html">设计文档</a>
+      <a href="./releases.html">版本迭代</a>
+      <a href="./status.html">项目状态</a>
+    </nav>
+  </header>
+  <main class="page">
+    <p class="eyebrow">Modular development roadmap</p>
+    <h1>WORLD MVP 模块化开发计划</h1>
+    <p class="lead">每个模块必须同时交付 Engine 能力、独立 Web 验证页、自动测试和版本记录。依赖模块未通过网页验证与测试前，不进入下一模块。</p>
+
+    <section>
+      <h2>统一完成标准</h2>
+      <ul class="card-list">
+        <li><strong>Engine</strong><p>规则、状态和结算逻辑不得写死在页面中。</p></li>
+        <li><strong>Web 验证</strong><p>每个模块提供独立页面，可操作、可检查输入与输出。</p></li>
+        <li><strong>Tests</strong><p>覆盖确定性、边界、非法状态、重复请求和数据一致性。</p></li>
+        <li><strong>Release</strong><p>更新版本记录，并在 Linear 写入 Commit、测试和验证结果。</p></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Milestone 1：Playable Character Core</h2>
+      <div class="grid two">
+        <article><h3>M01 调试台与状态检查器</h3><p><code>/dev.html</code>：Engine 版本、World Tick、JSON 状态、事件日志、随机种子、重置、导入和导出。</p><p>Linear：RR-70</p></article>
+        <article><h3>M02 账号、怪物档案与角色切换</h3><p><code>/monsters.html</code>：账号内多怪物、创建、命名、种族、主控切换和状态互斥。</p><p>Linear：RR-71</p></article>
+        <article><h3>M03 怪物卡与持续车卡</h3><p><code>/monster-card.html</code>：属性、技能、特性、经历、关系、装备、伤势、驻守史和结构化 Effect。</p><p>Linear：RR-72</p></article>
+      </div>
+    </section>
+
+    <section>
+      <h2>Milestone 2：Event-Driven World</h2>
+      <div class="grid two">
+        <article><h3>M04 Event Composer</h3><p><code>/events.html</code>：条件、权重、冷却、稀有度、保底、模板版本、频率和重复检查。</p><p>Linear：RR-73</p></article>
+        <article><h3>M05 狩猎垂直切片</h3><p><code>/hunt.html</code>：基础收益、稀有事件、装备、招募、成长、保底和地点差异。</p><p>Linear：RR-74</p></article>
+        <article><h3>M06 探索、采集与休养</h3><p><code>/actions.html</code>：新地点、遗迹、资源、材料、恢复和营地事件。</p><p>Linear：RR-75</p></article>
+        <article><h3>M07 世界地图与地点</h3><p><code>/world.html</code>：区域、地点、发现状态、容量、资源、防御修正和事件池。</p><p>Linear：RR-76</p></article>
+      </div>
+    </section>
+
+    <section>
+      <h2>Milestone 3：Territory and Garrison</h2>
+      <div class="grid two">
+        <article><h3>M08 驻军配置</h3><p><code>/garrison.html</code>：派驻、撤回、容量、防守快照、适应性、维护和防守策略。</p><p>Linear：RR-77</p></article>
+        <article><h3>M09 招募与新怪物养成</h3><p><code>/recruit.html</code>：养成与招募两种来源、背景经历、栏位和经济成本。</p><p>Linear：RR-78</p></article>
+        <article><h3>M10 领地结算实验室</h3><p><code>/territory-lab.html</code>：五档结果、攻防快照、地点加成、侦查、策略、批量运行和固定种子重放。</p><p>Linear：RR-79</p></article>
+      </div>
+    </section>
+
+    <section>
+      <h2>Milestone 4：Asynchronous Multiplayer</h2>
+      <div class="grid two">
+        <article><h3>M11 World Tick 与异步投影</h3><p><code>/timeline-lab.html</code>：玩家 A/B 双时间线、事件可见性、临时占领、汇合冲突和历史收益不回滚。</p><p>Linear：RR-80</p></article>
+        <article><h3>M12 多玩家权威后端</h3><p><code>/multiplayer-lab.html</code>：账号、快照、事件、投影游标、幂等请求、审计日志和重新登录恢复。</p><p>Linear：RR-81</p></article>
+        <article><h3>M13 经济与扩张 Simulation</h3><p><code>/simulation.html</code>：多玩家、多 Tick、收益、维护、进攻成本、追赶、统计和参数对比。</p><p>Linear：RR-82</p></article>
+      </div>
+    </section>
+
+    <section>
+      <h2>Milestone 5：Public MVP</h2>
+      <div class="grid two">
+        <article><h3>M14 内容扩充工具</h3><p><code>/content-tools.html</code>：事件编辑、条件预览、Effect、奖励池、覆盖率、重复度和无效 ID 检查。</p><p>Linear：RR-83</p></article>
+        <article><h3>M15 MVP 用户体验整合</h3><p><code>/play.html</code>：创建怪物、事件成长、装备、招募、占领、驻军和异步冲突的完整流程。</p><p>Linear：RR-84</p></article>
+        <article><h3>M16 部署、监控与公开测试</h3><p>GitHub Actions、测试、链接和 Schema 检查、部署、错误上报、版本、存档迁移和反馈入口。</p><p>Linear：RR-85</p></article>
+      </div>
+    </section>
+
+    <section>
+      <h2>开发顺序</h2>
+      <pre>M01 → M02 → M03 → M04 → M05 → M06 → M07 → M08
+→ M09 → M10 → M11 → M12 → M13 → M14 → M15 → M16</pre>
+      <p>内部机制验证版预计 10–14 周；完整公开测试 MVP 的范围估算为 19–31 周。时间仅用于容量评估，不是正式承诺或 Linear 排期。</p>
+    </section>
+
+    <section>
+      <h2>项目管理边界</h2>
+      <p>本页面保存长期有效的模块结构和验收方式。模块当前状态、负责人、优先级、阻塞、审核和下一步任务以 Linear 的 <strong>WORLD MVP</strong> 项目为唯一动态来源。</p>
+    </section>
+  </main>
+  <footer>© 2026 Bostage Pte. Ltd. · Realm Ruckus™ · WORLD MVP</footer>
+</body>
+</html>
