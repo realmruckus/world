@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Realm Ruckus WORLD M01 开发调试台与状态检查器">
+  <title>WORLD 开发调试台</title>
+  <link rel="stylesheet" href="./styles.css">
+  <style>
+    .dev-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem}.dev-toolbar{display:flex;flex-wrap:wrap;gap:.75rem;align-items:end}.dev-toolbar label{min-width:220px}.dev-output{max-height:28rem;overflow:auto;white-space:pre-wrap;word-break:break-word}.dev-status{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem}.dev-status article{padding:1rem;border:1px solid currentColor;border-radius:.75rem}.dev-status strong{display:block;font-size:1.5rem}.error-panel{border-left:4px solid #b42318}.warning-panel{border-left:4px solid #b54708}textarea{width:100%;min-height:16rem;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="./index.html">Realm Ruckus WORLD</a>
+    <nav aria-label="主导航">
+      <a href="./play.html">MVP</a>
+      <a href="./dev.html" aria-current="page">开发调试台</a>
+      <a href="./development-plan.html">开发计划</a>
+      <a href="./architecture.html">架构</a>
+      <a href="./docs/index.html">设计文档</a>
+    </nav>
+  </header>
+  <main class="page">
+    <p class="eyebrow">M01 development console</p>
+    <h1>开发调试台与状态检查器</h1>
+    <p class="lead">只通过 Engine 公开接口检查状态、确定性随机与存档兼容性。此页面不定义正式规则。</p>
+
+    <section class="dev-status" aria-label="Engine 状态摘要">
+      <article><span>Engine 版本</span><strong id="engine-version">—</strong></article>
+      <article><span>World Tick</span><strong id="world-tick">—</strong></article>
+    </section>
+
+    <section class="panel">
+      <h2>确定性操作</h2>
+      <div class="dev-toolbar">
+        <label>随机种子<input id="seed" inputmode="numeric" autocomplete="off"></label>
+        <button id="run-action" type="button">执行固定狩猎操作</button>
+        <button id="replay-action" type="button">重放上次操作</button>
+        <button id="reset-state" type="button">重置测试状态</button>
+      </div>
+      <p class="muted">固定输入为 HUNT，固定选择为事件第一项；相同初始状态、输入和种子必须产生相同结果。</p>
+    </section>
+
+    <section class="dev-grid">
+      <article class="panel error-panel"><h2>错误</h2><div id="errors" aria-live="assertive"></div></article>
+      <article class="panel warning-panel"><h2>警告与验证结果</h2><div id="warnings" aria-live="polite"></div></article>
+    </section>
+
+    <section class="panel">
+      <h2>存档导入与导出</h2>
+      <div class="dev-toolbar">
+        <button id="export-save" type="button">导出当前存档</button>
+        <button id="import-save" type="button">检查并导入存档</button>
+      </div>
+      <label for="save-text">存档 JSON</label>
+      <textarea id="save-text" spellcheck="false" placeholder="导出结果或待导入存档"></textarea>
+    </section>
+
+    <section class="dev-grid">
+      <article class="panel"><h2>操作前状态</h2><pre id="before-json" class="dev-output"></pre></article>
+      <article class="panel"><h2>操作后状态</h2><pre id="after-json" class="dev-output"></pre></article>
+    </section>
+    <section class="panel"><h2>状态差异</h2><pre id="state-diff" class="dev-output"></pre></section>
+
+    <section class="dev-grid">
+      <article class="panel"><h2>当前怪物数据</h2><pre id="monster-json" class="dev-output"></pre></article>
+      <article class="panel"><h2>地点数据</h2><pre id="location-json" class="dev-output"></pre></article>
+      <article class="panel"><h2>事件日志</h2><pre id="event-log" class="dev-output"></pre></article>
+    </section>
+    <section class="panel"><h2>完整世界状态 JSON</h2><pre id="state-json" class="dev-output"></pre></section>
+  </main>
+  <footer>© 2026 Bostage Pte. Ltd. · Realm Ruckus™ · WORLD MVP</footer>
+  <script type="module" src="./js/dev.js"></script>
+</body>
+</html>
