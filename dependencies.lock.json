@@ -3,9 +3,9 @@
   "dependencies": [
     {
       "repository": "realmruckus/core",
-      "commit": "e56872f52f68613a78c947e1dcd54e50c096a16d",
+      "commit": "56545a9f3a02a251f8b580dd2622d154455208b0",
       "tag": null,
-      "purpose": "Common mechanics, Effect conventions, product metadata and project baseline used during WORLD repository initialization"
+      "purpose": "Common mechanics, Effect conventions, product metadata, AI workflow and project baseline"
     }
   ]
 }
