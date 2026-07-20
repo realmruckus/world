@@ -1,0 +1,9 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>WORLD 开发难度</title><link rel="stylesheet" href="../styles.css"></head><body><header class="site-header"><a class="brand" href="../index.html">Realm Ruckus WORLD</a><nav><a href="./index.html">文档目录</a></nav></header><main class="page"><p class="eyebrow">Development reference</p><h1>开发难度与路线</h1><p class="lead">当前 WORLD 已从传统 MMORPG 收敛为异步共享世界、地点占领、一次性结果结算和长期怪物成长的网页卡牌 RPG。综合难度：中等偏高。</p><table><tr><th>系统</th><th>难度</th><th>主要风险</th></tr><tr><td>地点与容量</td><td>低至中</td><td>不同规模地点是否都有价值。</td></tr><tr><td>怪物、驻军与装备</td><td>中</td><td>状态互斥、重复派驻和角色保护。</td></tr><tr><td>World Tick 与事件投影</td><td>中等偏高</td><td>可见性、排序、重复结算和一致性。</td></tr><tr><td>一次性抢地</td><td>中</td><td>胜率、损失、解释性和单一最优策略。</td></tr><tr><td>经济 Simulation</td><td>高</td><td>通胀、滚雪球、维护、新玩家追赶。</td></tr><tr><td>事件内容</td><td>高</td><td>重复感、选择质量和奖励惊喜。</td></tr></table><h2>Simulation 必须验证</h2><ul><li>金币和资源是否持续膨胀。</li><li>大地点是否必然碾压小地点。</li><li>驻军维护是否形成真实取舍。</li><li>进攻是否值得冒险但不会成为无限套利。</li><li>后加入玩家能否追赶。</li><li>地点易主率、平均驻军率和玩家破产率是否合理。</li></ul><h2>原型顺序</h2><pre>1. World Tick 与追加式事件模型
+2. 地点、怪物和驻军数据结构
+3. 结构化 Effect 与一次性领地结算
+4. 经济与扩张 Simulation
+5. Event Composer 与奖励保底
+6. 本地可玩垂直切片
+7. 账号、云存档和服务端权威结算
+8. 异步事件投影
+9. 内容扩充与公开测试</pre><p>在 Simulation 稳定前，不制作完整美术、不开放自由交易、公会战争或复杂 PvP。</p></main></body></html>
