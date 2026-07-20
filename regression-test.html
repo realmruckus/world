@@ -26,7 +26,7 @@
     <p class="lead">直接在浏览器中运行 M01 与 M02 的全部稳定行为测试。后续模块必须持续保持这些测试全部通过。</p>
     <section class="panel">
       <div class="test-toolbar">
-        <button id="run-tests" type="button">重新运行全部测试</button>
+        <a id="run-tests" href="./regression-test.html?rerun=1" role="button">重新运行全部测试</a>
         <span id="test-summary" class="test-summary" aria-live="polite">准备测试…</span>
       </div>
     </section>
@@ -36,15 +36,6 @@
     </section>
   </main>
   <footer>© 2026 Bostage Pte. Ltd. · Realm Ruckus™ · WORLD MVP</footer>
-  <script id="regression-fallback">
-    window.setTimeout(() => {
-      const button = document.querySelector('#run-tests');
-      const summary = document.querySelector('#test-summary');
-      if (!button || button.dataset.bound === 'true') return;
-      summary.textContent = '测试模块未成功加载。点击按钮重新载入页面。';
-      button.addEventListener('click', () => window.location.reload());
-    }, 1500);
-  </script>
   <script type="module" src="./js/regression-browser-test.js"></script>
 </body>
 </html>
