@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Realm Ruckus WORLD M01 浏览器自动验收测试">
+  <title>WORLD M01 自动验收测试</title>
+  <link rel="stylesheet" href="./styles.css">
+  <style>
+    .test-layout{display:grid;grid-template-columns:minmax(20rem,1fr) minmax(24rem,1.4fr);gap:1rem;align-items:start}.test-frame{width:100%;min-height:48rem;border:1px solid currentColor;border-radius:.75rem;background:#fff}.test-results{padding-left:1.25rem}.test-results li{margin-bottom:1rem}.test-results .pass{border-left:4px solid #067647;padding-left:.75rem}.test-results .fail{border-left:4px solid #b42318;padding-left:.75rem}.test-results pre{white-space:pre-wrap;word-break:break-word;max-height:14rem;overflow:auto}.test-toolbar{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap}@media(max-width:900px){.test-layout{grid-template-columns:1fr}.test-frame{min-height:42rem}}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="./index.html">Realm Ruckus WORLD</a>
+    <nav aria-label="主导航">
+      <a href="./dev.html">开发调试台</a>
+      <a href="./dev-test.html" aria-current="page">自动验收</a>
+      <a href="./development-plan.html">开发计划</a>
+      <a href="./architecture.html">架构</a>
+    </nav>
+  </header>
+  <main class="page">
+    <p class="eyebrow">M01 browser acceptance suite</p>
+    <h1>开发调试台自动验收测试</h1>
+    <p class="lead">本页面通过同源 iframe 直接驱动正式 <code>dev.html</code>，自动验证页面资源、确定性随机、状态重置、存档导入导出、版本检查、损坏存档保护和状态差异。</p>
+
+    <section class="panel">
+      <div class="test-toolbar">
+        <button id="run-tests" type="button">重新运行全部测试</button>
+        <strong id="test-summary" aria-live="polite">准备执行。</strong>
+      </div>
+    </section>
+
+    <div class="test-layout">
+      <section class="panel">
+        <h2>测试结果</h2>
+        <ol id="test-results" class="test-results" aria-live="polite"></ol>
+      </section>
+      <section class="panel">
+        <h2>被测页面</h2>
+        <iframe id="test-frame" class="test-frame" title="WORLD M01 开发调试台"></iframe>
+      </section>
+    </div>
+  </main>
+  <footer>© 2026 Bostage Pte. Ltd. · Realm Ruckus™ · WORLD MVP</footer>
+  <script type="module" src="./js/dev-browser-test.js"></script>
+</body>
+</html>
