@@ -2,15 +2,23 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const html = await readFile(new URL('../regression-test.html', import.meta.url), 'utf8');
-const script = await readFile(new URL('../js/regression-browser-test.js', import.meta.url), 'utf8');
+const html = await readFile(new URL('../regression-test-v2.html', import.meta.url), 'utf8');
+const loader = await readFile(new URL('../js/regression-test-v2-loader.js', import.meta.url), 'utf8');
+const suite = await readFile(new URL('../js/regression-browser-test.js', import.meta.url), 'utf8');
 
-test('regression rerun control remains usable without JavaScript', () => {
-  assert.match(html, /<a[^>]+id="run-tests"[^>]+href="\.\/regression-test\.html\?rerun=1"/);
-  assert.doesNotMatch(html, /id="regression-fallback"/);
+test('v2 regression page binds through a classic external loader', () => {
+  assert.match(html, /id="run-tests"/);
+  assert.match(html, /src="\.\/js\/regression-test-v2-loader\.js"/);
+  assert.doesNotMatch(html, /type="module"/);
 });
 
-test('regression module intercepts native navigation and marks binding complete', () => {
-  assert.match(script, /event\.preventDefault\(\)/);
-  assert.match(script, /runButton\.dataset\.bound = 'true'/);
+test('v2 loader reports module loading failures in the page', () => {
+  assert.match(loader, /addEventListener\('click'/);
+  assert.match(loader, /import\('\.\/regression-browser-test\.js\?build=/);
+  assert.match(loader, /测试模块加载失败/);
+});
+
+test('regression suite exports a callable runner and supports manual bootstrap', () => {
+  assert.match(suite, /export \{ runAllTests \}/);
+  assert.match(suite, /__REGRESSION_MANUAL_BOOTSTRAP__/);
 });
