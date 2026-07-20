@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "dependencies": [
+    {
+      "repository": "realmruckus/core",
+      "commit": "e56872f52f68613a78c947e1dcd54e50c096a16d",
+      "tag": null,
+      "purpose": "Common mechanics, Effect conventions, product metadata and project baseline used during WORLD repository initialization"
+    }
+  ]
+}
