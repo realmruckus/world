@@ -1,0 +1,14 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>WORLD 架构</title><link rel="stylesheet" href="./styles.css"></head><body><header class="site-header"><a class="brand" href="./index.html">Realm Ruckus WORLD</a><nav><a href="./play.html">MVP</a><a href="./architecture.html">架构</a><a href="./docs/index.html">文档</a><a href="./releases.html">版本</a></nav></header><main class="page"><p class="eyebrow">Architecture</p><h1>整体架构</h1><section class="grid two"><article><h2>仓库身份</h2><p><code>realmruckus/world</code> 是 WORLD 独立游戏的唯一实现与产品网站来源。根目录即网站根目录，不使用额外 website 子目录。</p></article><article><h2>依赖边界</h2><p>WORLD 消费 Core 的通用 Mechanic、Effect、产品元数据与长期基线，通过 <code>dependencies.lock.json</code> 固定明确 Commit，不长期跟踪 main。</p></article></section><h2>运行分层</h2><pre>HTML 页面与卡牌式 UI
+        ↓
+js/app.js 交互适配
+        ↓
+js/engine.js
+├─ World Tick
+├─ 确定性随机
+├─ 怪物角色与持续车卡
+├─ 结构化 Effect
+├─ Event Composer
+├─ 地点、驻军与领地结算
+└─ 经济计算
+        ↓
+未来服务端权威事务、数据库与审计日志</pre><h2>网站内容</h2><ul class="card-list"><li><strong>index.html</strong>：产品入口与核心定位</li><li><strong>play.html</strong>：可运行垂直切片</li><li><strong>architecture.html</strong>：技术与仓库边界</li><li><strong>docs/</strong>：所有设计文档网页</li><li><strong>releases.html</strong>：版本和迭代记录</li><li><strong>status.html</strong>：长期产品状态摘要；动态任务仍以 Linear 为准</li></ul><h2>权威结算原则</h2><p>浏览器原型仅验证体验。正式账号、奖励、招募、领地易主与经济变化必须由服务端权威结算，并使用幂等行动 ID、版本化模板、随机种子和追加式事件日志支持重放与审计。</p></main></body></html>
