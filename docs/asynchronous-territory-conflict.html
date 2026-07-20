@@ -1,0 +1,7 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>异步领地冲突</title><link rel="stylesheet" href="../styles.css"></head><body><header class="site-header"><a class="brand" href="../index.html">Realm Ruckus WORLD</a><nav><a href="./index.html">文档目录</a></nav></header><main class="page"><p class="eyebrow">Territory model</p><h1>异步领地冲突与夺取</h1><p class="lead">推荐原则：临时占领 + 时间线汇合 + 一次性异步争夺 + 历史收益不回滚。</p><h2>问题</h2><p>玩家 B 在个人 Tick 5 占领森林，玩家 A 在个人 Tick 10 占领同一森林。双方在当时可见世界中都合法地将地点视为无主，不能只按现实提交时间或个人 Tick 先后直接判胜。</p><h2>状态</h2><table><tr><th>状态</th><th>含义</th></tr><tr><td>UNCLAIMED</td><td>当前玩家视图中无主。</td></tr><tr><td>PROVISIONAL</td><td>尚未发现冲突时取得的临时控制。</td></tr><tr><td>CONTESTED</td><td>时间线汇合后存在多个有效控制声明。</td></tr><tr><td>CONTROLLED</td><td>一次性争夺结算后的控制状态。</td></tr><tr><td>PROTECTED</td><td>地点易主后的短期保护。</td></tr></table><h2>结算流程</h2><pre>B Tick 5 占领森林并获得 Tick 5–9 收益
+A Tick 10 在自己的世界中占领森林并留下防守快照
+B 到达 Tick 10，看见 A 的占领痕迹
+系统将地点标记为 CONTESTED
+B 选择侦查、进攻或撤退
+系统锁定可见防守快照并一次性结算
+结果只影响 Tick 10 之后的控制权</pre><h2>一次性争夺</h2><p>输入包括进攻怪物、驻军快照、等级、装备、特性、地点适应性、设施、侦查、策略与确定性随机。输出建议为大胜、小胜、僵持、小败、大败，不进入逐单位战斗。</p><h2>历史与保护</h2><ul><li>已获得的资源、经验、任务进度和设施收益不回滚。</li><li>地点维护控制历史，区分历史拥有者与当前拥有者。</li><li>易主后设置保护 Tick、同一玩家挑战冷却和行动成本，防止无限来回抢夺。</li><li>战败怪物优先产生伤势、逃回、被俘或装备耐久损失，MVP 不采用永久死亡。</li></ul><h2>事件日志</h2><p>占领、侦查、挑战、结算和易主均使用追加式事件记录，包含地点、玩家、World Tick、模板版本、防守快照版本、随机种子和结算结果，支持重放与审计。</p></main></body></html>
