@@ -21,3 +21,10 @@ test('RR-119 adapter executes real deterministic lives and emits the required re
   assert.equal(typeof first.endingDistribution, 'object');
   assert.deepEqual(first.errorSummary, {});
 });
+
+test('RR-119 adapter does not collapse every life into one ending and no relationship path', async () => {
+  const { runContractSimulation } = await import('../js/life-content-simulation-adapter-v1.js');
+  const report = runContractSimulation({ requestedLifeCount: 40, seedStart: 119000 });
+  assert.ok(Math.max(...Object.values(report.endingDistribution)) < report.requestedLifeCount);
+  assert.ok((report.relationshipPathDistribution.none || 0) < report.requestedLifeCount);
+});
