@@ -1,5 +1,6 @@
 {
   "schemaVersion": 3,
+  "dsl": "./life-metric-dsl.json",
   "range": { "min": 0, "max": 100, "round": "nearest", "clamp": true },
   "unknownMetricPolicy": "error",
   "metrics": {
@@ -12,21 +13,18 @@
     "knowledge": { "formula": "clamp(mind.smarts*0.35 + educationGrowth*0.40 + lifelongLearning*0.25)" },
     "contribution": { "formula": "clamp(publicContribution*0.50 + peopleHelpedScore*0.30 + mind.empathy*0.20)" },
     "adventure": { "formula": "clamp(lifeVariety*0.45 + riskTurnsScore*0.30 + regionVariety*0.25)" },
-
     "financialSecurity": { "formula": "clamp(normalizedNetAssets*0.45 + incomeStability*0.30 + (100-debtBurden)*0.25)" },
-    "normalizedNetAssets": { "formula": "clamp(logNormalize(max(0, finance.assets-finance.debt), 0, 10000000))" },
+    "normalizedNetAssets": { "formula": "clamp(logNormalize(max(0,finance.assets-finance.debt),0,10000000))" },
     "incomeStability": { "formula": "clamp(profitableYearsRatio(history.timeline)*100)" },
-    "debtBurden": { "formula": "clamp(logNormalize(finance.debt, 0, 2000000))" },
-
+    "debtBurden": { "formula": "clamp(logNormalize(finance.debt,0,2000000))" },
     "businessSuccess": { "formula": "clamp(entrepreneurshipScore(history.experiences)*0.35 + businessAssetScore(finance)*0.35 + profitableBusinessYearsRatio(history.timeline)*30)" },
     "peopleHelped": { "formula": "countUniqueExperienceTag(history.experiences,'helped_person')" },
     "peopleHelpedScore": { "formula": "clamp(peopleHelped*5)" },
     "familyStability": { "formula": "clamp(meanDimension(relationships,'family','trust')*0.40 + meanDimension(relationships,'family','love')*0.35 + (100-meanDimension(relationships,'family','conflict'))*0.25 - countRelationshipRuptures(relationships,'family')*10)" },
     "familyLegacy": { "formula": "clamp(familyStability*0.70 + min(identity.childrenCount*10,30))" },
-    "partnerSupport": { "formula": "clamp(lastLongTermPartner.dimensions.love*0.35 + lastLongTermPartner.dimensions.trust*0.30 + lastLongTermPartner.dimensions.respect*0.20 + (100-lastLongTermPartner.dimensions.conflict)*0.15)" },
+    "partnerSupport": { "formula": "clamp(meanDimension(relationships,'partner','love')*0.35 + meanDimension(relationships,'partner','trust')*0.30 + meanDimension(relationships,'partner','respect')*0.20 + (100-meanDimension(relationships,'partner','conflict'))*0.15)" },
     "friendCount": { "formula": "countRelationships(relationships,'friend','active')" },
     "friendshipSupport": { "formula": "clamp(meanDimension(relationships,'friend','trust')*0.40 + meanDimension(relationships,'friend','love')*0.30 + meanDimension(relationships,'friend','respect')*0.20 + min(friendCount*2,10))" },
-
     "lifeVariety": { "formula": "clamp(uniqueExperienceTypeRatio(history.experiences)*35 + uniqueCareerRatio(history.timeline)*25 + uniqueRegionRatio(history.timeline)*20 + uniqueMajorActivityRatio(history.experiences)*20)" },
     "regionVariety": { "formula": "clamp(uniqueRegionRatio(history.timeline)*100)" },
     "educationGrowth": { "formula": "clamp(countUniqueExperienceTag(history.experiences,'education_growth')*8)" },
