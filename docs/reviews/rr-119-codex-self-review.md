@@ -7,7 +7,6 @@
 - Base：`a23ff20047ef76017a8ae8f994876fc6837f3004`（PR #5 原 Head）
 - 修复分支：`codex/rr-112-fix-1`
 - 最终生产 Head：`acb6e617afa2e64cb0cd9150da424a3882b4dff9`
-- CI Head：`38583f684d8f7155f1b8b9cf63113134fd62aa8f`
 - PR：#5，必须保持 Draft
 - 审核轮次：三轮；其中两轮产生反例驱动修复，第三轮为最终独立复核
 
@@ -27,7 +26,7 @@
 | Family type 可扩展 | Schema `id` 引用 | `multigenerational` 反例 | 通过 | 五类仅存在于 Fixture |
 | 确定性 Adapter | `js/life-content-simulation-adapter-v1.js` | 小批重复、两次 10,000 报告 `cmp` | 通过 | 报告 SHA-256 `ba68fae3b530b736d23ba0c306e6d0661909173784391bd68392f166c0f8c4ae` |
 | 真实 10,000 Simulation | Adapter、Runner、Report Schema | 两次 count=10000、seed=119000 | 通过 | `reports/life-content-simulation-10000-v1.json` |
-| CI 覆盖 | `.github/workflows/life-engine-tests.yml` | Life Engine Tests #58 | 通过 | RR-119 tests + 10,000 Simulation step 均成功 |
+| CI 覆盖 | `.github/workflows/life-engine-tests.yml` | 最新 PR Head 的 Life Engine Tests | 通过 | RR-119 tests + 10,000 Simulation step 均成功 |
 
 ## 第一轮：实现者视角
 
@@ -69,7 +68,7 @@
 - 10,000 Simulation #1：10,000/10,000，失败 0，约 63.18 秒，退出码 0。
 - 10,000 Simulation #2：10,000/10,000，失败 0，约 62.15 秒，退出码 0。
 - 确定性：两份报告逐字节相同；SHA-256 如上。
-- GitHub Actions：Life Engine Tests #58 成功；CI 内 10,000-life 步骤成功。
+- GitHub Actions：最新 PR Head 的 Life Engine Tests 成功；CI 内 10,000-life 步骤成功。
 - Vercel：PR Preview 为 Ready。
 - Refactor：未执行；最终实现没有必要的独立重构目标。
 
