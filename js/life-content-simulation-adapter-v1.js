@@ -48,7 +48,29 @@ function initializeFromContract(life, seed, seedStart) {
     parentJobIds: [...identity.parentJobIds],
     originResources: structuredClone(origin.resources),
   };
-  life.finance = { ...life.finance, ...structuredClone(origin.finance) };
+  life.finance = {
+    ...life.finance,
+    ...structuredClone(origin.finance),
+  };
+  life.relationships = identity.parentNpcIds.map((npcId) => ({
+    id: npcId,
+    name: npcId,
+    role: 'family',
+    status: 'active',
+    dimensions: {
+      attraction: 0,
+      love: origin.resources.familySupport,
+      trust: origin.resources.familySupport,
+      conflict: 100 - origin.resources.familySupport,
+      dependence: 0,
+      respect: origin.resources.familySupport,
+      passion: 0,
+      commitment: origin.resources.familySupport,
+    },
+    relationshipStartedAtWeeks: 0,
+    statusChangedAtWeeks: 0,
+    sharedExperiences: [],
+  }));
   return life;
 }
 
@@ -75,6 +97,15 @@ function increment(map, key) {
   map[key] = (map[key] || 0) + 1;
 }
 
+function deterministicChoice(event, life) {
+  const mode = Math.abs(life.seed) % 4;
+  if (mode === 0) return event.choices[0].id;
+  if (mode === 1) return event.choices.at(-1).id;
+  let hash = (life.seed ^ life.clock.totalWeeks) >>> 0;
+  for (const character of event.id) hash = Math.imul(hash ^ character.charCodeAt(0), 16777619) >>> 0;
+  return event.choices[hash % event.choices.length].id;
+}
+
 export function runContractSimulation(options = {}) {
   const requestedLifeCount = options.requestedLifeCount ?? 10000;
   const seedStart = options.seedStart ?? 119000;
@@ -85,6 +116,7 @@ export function runContractSimulation(options = {}) {
   const errorSummary = {};
   const policy = {
     maxAgeYears: 82,
+    choose: deterministicChoice,
     initialize(life, seed) { return initializeFromContract(life, seed, seedStart); },
   };
 
