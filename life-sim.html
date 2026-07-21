@@ -2,23 +2,30 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="WORLD 人生重开探索验证程序">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="WORLD 现实人生模拟引擎单页验证程序">
   <title>人生重开实验室 · Realm Ruckus WORLD</title>
   <link rel="stylesheet" href="./styles.css">
   <script type="module" src="./js/components/site-header.js"></script>
-  <script type="module" src="./js/life-sim.js"></script>
+  <script type="module" src="./js/life-sim-v3.js"></script>
   <style>
-    .life-shell{max-width:1180px;margin:0 auto;padding:28px 20px 72px}.life-toolbar{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-bottom:18px}.life-toolbar button,.choice-list button,.primary{border:1px solid var(--border,#d8d8d8);border-radius:12px;background:var(--surface,#fff);padding:10px 14px;cursor:pointer}.primary{background:#202124;color:#fff;border-color:#202124;font-weight:700}.life-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(300px,.95fr);gap:22px}.life-card{border:1px solid var(--border,#ddd);border-radius:20px;padding:22px;background:var(--surface,#fff)}#profile{display:flex;align-items:center;gap:18px;margin-bottom:20px}#profile svg{width:96px;flex:0 0 96px;color:#242424}#profile h1{margin:.2rem 0;font-size:2rem}.life-meter{display:grid;grid-template-columns:48px 1fr 34px;gap:10px;align-items:center;margin:10px 0}.life-meter>div{height:10px;border-radius:99px;background:#ececec;overflow:hidden}.life-meter i{display:block;height:100%;background:#202124;border-radius:inherit}.life-meter strong{text-align:right}.fact-list,.archive-list,.achievement-list{list-style:none;padding:0;margin:18px 0 0}.fact-list li,.archive-list li,.achievement-list li{display:flex;justify-content:space-between;gap:18px;padding:11px 0;border-top:1px solid #eee}.fact-list span,.archive-list span,.achievement-list span{color:#666}.event-type{display:inline-block;border-radius:99px;background:#f1f1f1;padding:5px 9px;font-size:.8rem;text-transform:uppercase}.choice-list{display:grid;gap:10px;margin-top:20px}.choice-list button{text-align:left}.choice-list button:hover{border-color:#222}.choice-list span{display:block;color:#666;margin-top:4px}.timeline{list-style:none;padding:0;margin:0}.timeline li{display:grid;grid-template-columns:58px 1fr;gap:12px;padding:14px 0;border-bottom:1px solid #eee}.timeline time{font-weight:700}.timeline p{margin:.25rem 0;color:#666}.life-score{font-size:1.2rem}.life-score strong{font-size:2rem}.achievement-list li{opacity:.45}.achievement-list li.unlocked{opacity:1}.empty{color:#666}@media(max-width:760px){.life-grid{grid-template-columns:1fr}.life-toolbar{justify-content:stretch}.life-toolbar button{flex:1}#profile{align-items:flex-start}#profile svg{width:76px;flex-basis:76px}.life-card{padding:18px}}
+    .life-shell{max-width:1180px;margin:0 auto;padding:28px 20px calc(72px + env(safe-area-inset-bottom))}.life-intro{margin:0 0 18px}.life-intro h1{margin:.2rem 0}.life-intro p{max-width:760px;color:#666}.life-toolbar{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-bottom:18px}.life-toolbar button,.choice-list button,.primary{border:1px solid var(--border,#d8d8d8);border-radius:12px;background:var(--surface,#fff);padding:11px 14px;cursor:pointer;font:inherit}.primary{background:#202124;color:#fff;border-color:#202124;font-weight:700}.life-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(300px,.95fr);gap:22px}.life-card{border:1px solid var(--border,#ddd);border-radius:20px;padding:22px;background:var(--surface,#fff);box-shadow:0 10px 35px rgba(0,0,0,.035)}#profile{display:flex;align-items:center;gap:18px;margin-bottom:20px}#profile svg{width:96px;flex:0 0 96px;color:#242424}#profile h1{margin:.2rem 0;font-size:2rem}.life-meter{display:grid;grid-template-columns:48px 1fr 34px;gap:10px;align-items:center;margin:10px 0}.life-meter>div{height:10px;border-radius:99px;background:#ececec;overflow:hidden}.life-meter i{display:block;height:100%;background:#202124;border-radius:inherit}.life-meter strong{text-align:right}.fact-list,.archive-list,.achievement-list{list-style:none;padding:0;margin:18px 0 0}.fact-list li,.archive-list li,.achievement-list li{display:flex;justify-content:space-between;gap:18px;padding:11px 0;border-top:1px solid #eee}.fact-list span,.archive-list span,.achievement-list span{color:#666;text-align:right}.event-type{display:inline-block;border-radius:99px;background:#f1f1f1;padding:5px 9px;font-size:.8rem;text-transform:uppercase}.event-caption{font-size:.9rem;color:#777;margin:.8rem 0}.choice-list{display:grid;gap:10px;margin-top:20px}.choice-list button{text-align:left;min-height:64px}.choice-list button:hover,.choice-list button:focus-visible{border-color:#222;transform:translateY(-1px)}.choice-list span{display:block;color:#666;margin-top:4px}.timeline{list-style:none;padding:0;margin:0}.timeline li{display:grid;grid-template-columns:76px 1fr;gap:12px;padding:14px 0;border-bottom:1px solid #eee}.timeline time{font-weight:700}.timeline p{margin:.25rem 0;color:#666}.life-score{font-size:1.2rem}.life-score strong{font-size:2rem}.achievement-list li{opacity:.45}.achievement-list li.unlocked{opacity:1}.empty{color:#666}@media(max-width:760px){.life-shell{padding:18px 14px calc(48px + env(safe-area-inset-bottom))}.life-grid{grid-template-columns:1fr}.life-toolbar{display:grid;grid-template-columns:1fr 1fr}.life-toolbar button{width:100%}#profile{align-items:flex-start}#profile svg{width:76px;flex-basis:76px}.life-card{padding:18px}.timeline li{grid-template-columns:68px 1fr}.fact-list li,.archive-list li,.achievement-list li{align-items:flex-start}.choice-list button{min-height:72px}}
   </style>
 </head>
 <body>
   <world-site-header></world-site-header>
   <main class="life-shell">
+    <header class="life-intro">
+      <p class="eyebrow">Life Simulation Engine v3</p>
+      <h1>人生重开实验室</h1>
+      <p>现实人生按年展开，恋爱阶段按周展开。每次选择推进当前时间单位，所有事件、关系、结局、档案和成就只保存在本地浏览器。</p>
+    </header>
     <div class="life-toolbar" aria-label="人生模拟工具">
       <button id="new-life" type="button">重新投胎</button>
       <button id="export-save" type="button">导出 JSON</button>
+      <button id="import-save" type="button">导入 JSON</button>
       <button id="clear-data" type="button">清除本地数据</button>
+      <input id="import-file" type="file" accept="application/json,.json" hidden>
     </div>
     <section class="life-grid">
       <div>
