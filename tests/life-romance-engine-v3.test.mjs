@@ -12,7 +12,10 @@ import {
 } from '../js/life-romance-engine-v3.js';
 
 const relationshipRules = JSON.parse(fs.readFileSync(new URL('../data/life-relationship-rules.json', import.meta.url), 'utf8'));
-const romanceEvents = JSON.parse(fs.readFileSync(new URL('../data/life-events-romance-v3.json', import.meta.url), 'utf8'));
+const romanceEvents = [
+  ...JSON.parse(fs.readFileSync(new URL('../data/life-events-romance-v3.json', import.meta.url), 'utf8')),
+  ...JSON.parse(fs.readFileSync(new URL('../data/life-events-romance-resolution-v3.json', import.meta.url), 'utf8')),
+];
 const interruptEvents = JSON.parse(fs.readFileSync(new URL('../data/life-events-interrupt-v3.json', import.meta.url), 'utf8'));
 
 const tests = [];
@@ -78,13 +81,22 @@ test('hard limit forces a resolution event before normal events', () => {
   assert.equal(selected.pendingEvent.id, 'romance_hard_limit_unresolved');
 });
 
-test('hard limit without an eligible resolution fails instead of stalling', () => {
-  const life = createRomanceLife('cohabiting');
-  life.clock.totalWeeks = 52;
-  assert.throws(
-    () => selectRomanceTurn(life, romanceEvents, [], relationshipRules),
-    /without eligible resolution event/,
-  );
+test('hard limit has a resolution event for every nonterminal romance status', () => {
+  const expected = {
+    potential: 'romance_hard_limit_potential',
+    dating: 'romance_hard_limit_unresolved',
+    exclusive: 'romance_hard_limit_committed',
+    cohabiting: 'romance_hard_limit_cohabiting',
+    engaged: 'romance_hard_limit_engaged',
+    paused: 'romance_hard_limit_paused',
+  };
+  for (const [status, eventId] of Object.entries(expected)) {
+    const life = createRomanceLife(status);
+    life.clock.totalWeeks = 52;
+    life.clock.stageStartedAtWeeks = 0;
+    const selected = selectRomanceTurn(life, romanceEvents, [], relationshipRules);
+    assert.equal(selected.pendingEvent.id, eventId);
+  }
 });
 
 test('terminal relationship resolution exits romance stage', () => {
@@ -95,6 +107,15 @@ test('terminal relationship resolution exits romance stage', () => {
   assert.equal(resolved.relationships[0].status, 'broken_up');
   assert.equal(resolved.clock.stage, 'life');
   assert.equal(resolved.history.flags.activeRomanceRelationshipId, undefined);
+});
+
+test('paused relationship exits the active weekly romance stage', () => {
+  const life = createRomanceLife('dating');
+  life.clock.totalWeeks = 52;
+  const selected = selectRomanceTurn(life, romanceEvents, [], relationshipRules);
+  const resolved = resolveRomanceChoice(selected, 'pause', relationshipRules);
+  assert.equal(resolved.relationships[0].status, 'paused');
+  assert.equal(resolved.clock.stage, 'life');
 });
 
 test('manual exit keeps canonical time unchanged', () => {
