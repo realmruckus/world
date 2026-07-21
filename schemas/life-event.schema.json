@@ -1,19 +1,29 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://world.realmruckus.com/schemas/life-event.schema.json",
-  "title": "WORLD Life Simulation Event v1",
+  "title": "WORLD Life Simulation Event v2",
   "type": "object",
   "additionalProperties": false,
-  "required": ["id", "version", "type", "title", "description", "weight", "conditions", "choices"],
+  "required": ["id", "version", "type", "timeScale", "title", "description", "weight", "conditions", "choices"],
   "properties": {
     "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]{2,63}$" },
-    "version": { "const": 1 },
+    "version": { "const": 2 },
     "type": { "enum": ["birth_family", "childhood", "education", "career", "wealth", "social", "romance", "parenting", "health", "legal_risk", "public_era", "opportunity", "values", "later_life"] },
+    "timeScale": { "enum": ["year", "week"] },
+    "stage": { "enum": ["life", "romance"] },
     "tags": { "type": "array", "items": { "type": "string" }, "uniqueItems": true, "default": [] },
     "rarity": { "enum": ["common", "uncommon", "rare", "legendary"], "default": "common" },
     "priority": { "type": "integer", "minimum": 0, "maximum": 1000, "default": 100 },
     "weight": { "type": "number", "exclusiveMinimum": 0 },
-    "cooldownYears": { "type": "integer", "minimum": 0, "default": 0 },
+    "cooldown": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["amount", "unit"],
+      "properties": {
+        "amount": { "type": "integer", "minimum": 0, "maximum": 5200 },
+        "unit": { "enum": ["year", "week"] }
+      }
+    },
     "oncePerLife": { "type": "boolean", "default": false },
     "milestone": { "type": "boolean", "default": false },
     "conditions": { "$ref": "#/$defs/conditions" },
@@ -46,6 +56,14 @@
           "properties": {
             "min": { "type": "integer", "minimum": 0, "maximum": 130 },
             "max": { "type": "integer", "minimum": 0, "maximum": 130 }
+          }
+        },
+        "weekInStage": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "min": { "type": "integer", "minimum": 0, "maximum": 5200 },
+            "max": { "type": "integer", "minimum": 0, "maximum": 5200 }
           }
         },
         "requiredTags": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
@@ -91,23 +109,25 @@
       "additionalProperties": false,
       "required": ["op"],
       "properties": {
-        "op": { "enum": ["add_stat", "set_stat", "add_resource", "set_resource", "add_tag", "remove_tag", "set_flag", "clear_flag", "set_identity", "create_relationship", "modify_relationship", "end_relationship", "append_experience", "set_career", "set_education", "schedule_event"] },
+        "op": { "enum": ["add_stat", "set_stat", "add_resource", "set_resource", "add_tag", "remove_tag", "set_flag", "clear_flag", "set_identity", "create_relationship", "modify_relationship", "end_relationship", "append_experience", "set_career", "set_education", "schedule_event", "enter_stage", "exit_stage"] },
         "key": { "type": "string" },
         "value": {},
         "amount": { "type": "number" },
+        "unit": { "enum": ["year", "week"] },
         "role": { "type": "string" },
         "relationshipId": { "type": "string" },
         "eventId": { "type": "string" },
-        "afterYears": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "stage": { "enum": ["life", "romance"] },
         "payload": { "type": "object" }
       }
     },
     "futureEffect": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["afterYears", "effects"],
+      "required": ["after", "unit", "effects"],
       "properties": {
-        "afterYears": { "type": "integer", "minimum": 1, "maximum": 100 },
+        "after": { "type": "integer", "minimum": 1, "maximum": 5200 },
+        "unit": { "enum": ["year", "week"] },
         "conditions": { "$ref": "#/$defs/conditions" },
         "effects": { "type": "array", "items": { "$ref": "#/$defs/effect" } }
       }
@@ -116,5 +136,15 @@
       "type": "object",
       "additionalProperties": { "type": "number" }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "type": { "const": "romance" } }, "required": ["type"] },
+      "then": { "properties": { "timeScale": { "const": "week" }, "stage": { "const": "romance" } }, "required": ["stage"] }
+    },
+    {
+      "if": { "properties": { "stage": { "const": "life" } }, "required": ["stage"] },
+      "then": { "properties": { "timeScale": { "const": "year" } } }
+    }
+  ]
 }
