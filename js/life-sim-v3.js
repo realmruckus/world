@@ -5,7 +5,7 @@ import { calculateDerivedMetrics } from './life-metric-engine-v3.js';
 import { finalizeLife } from './life-ending-engine-v3.js';
 import { archiveFinishedLife, createEmptySave, exportSaveJson, importSaveJson, loadLocalSave, persistLocalSave, setCurrentLife, unlockAchievements } from './life-save-engine-v3.js';
 import { evaluateAchievements } from './life-achievement-engine-v3.js';
-import { activeRelationship, eventView, metricRows, profileView, timelineRows } from './life-ui-model-v3.js';
+import { activeRelationship, eventView, generatedChineseIdentity, metricRows, profileView, timelineRows } from './life-ui-model-v3.js';
 
 const $ = (selector) => document.querySelector(selector);
 const state = { save: createEmptySave(), content: null };
@@ -33,7 +33,10 @@ function randomSeed() {
 
 function createNewLife() {
   const seed = randomSeed();
-  return createLifeStateV3({ id:`life-${seed}`, seed, name:`界行者 ${String(seed).slice(-4)}`, birthYear:2000, region:'现实城市', createdAt:new Date().toISOString() });
+  const identity = generatedChineseIdentity(seed);
+  const life = createLifeStateV3({ id:`life-${seed}`, seed, name:identity.name, birthYear:2000, region:'现实城市', createdAt:new Date().toISOString() });
+  Object.assign(life.identity, identity);
+  return life;
 }
 
 function persist() {
@@ -56,15 +59,10 @@ function ensurePending(life) {
   return selectEventAtomic(life, state.content.annualEvents);
 }
 
-function meter(label, value) {
-  const safe = Math.max(0, Math.min(100, value));
-  return `<div class="life-meter"><span>${label}</span><div><i style="width:${safe}%"></i></div><strong>${safe}</strong></div>`;
-}
-
 function renderProfile(life) {
   const view = profileView(life);
-  $('#profile').innerHTML = `${view.avatar}<div><p class="eyebrow">${view.stageLabel} · ${view.ageLabel}</p><h1>${view.name}</h1><p>${view.location} · ${view.education} · ${view.career}</p></div>`;
-  $('#metrics').innerHTML = metricRows(life).map(({label,value}) => meter(label,value)).join('');
+  $('#profile').innerHTML = `${view.avatar}<div><p class="eyebrow">${view.stageLabel} · ${view.ageLabel}</p><h1>${view.name}</h1><p>${view.gender} · ${view.zodiac} · ${view.birthdayLabel}</p><p>${view.location} · ${view.education} · ${view.career}</p></div>`;
+  $('#metrics').innerHTML = metricRows(life).map(({label,status}) => `<div class="life-status"><span>${label}</span><strong>${status}</strong></div>`).join('');
   const relationship = activeRelationship(life);
   $('#facts').innerHTML = `<li><span>现金</span><strong>¥${Math.round(life.finance.cash).toLocaleString('zh-CN')}</strong></li><li><span>资产 / 债务</span><strong>¥${Math.round(life.finance.assets).toLocaleString('zh-CN')} / ¥${Math.round(life.finance.debt).toLocaleString('zh-CN')}</strong></li><li><span>年收入</span><strong>¥${Math.round(life.finance.income).toLocaleString('zh-CN')}</strong></li><li><span>关系</span><strong>${relationship ? `${relationship.name} · ${relationshipNames[relationship.status] || relationship.status}` : '暂无重要伴侣关系'}</strong></li><li><span>人生标签</span><strong>${life.history.tags.join('、') || '尚未形成'}</strong></li>`;
 }
@@ -78,13 +76,13 @@ function renderEvent(life) {
   const panel = $('#event-panel');
   if (life.alive === false) {
     const ending = life.ending;
-    panel.innerHTML = `<p class="eyebrow">Ending</p><h2>${endingNames[ending.primaryEnding] || ending.primaryEnding}</h2><p>这段人生已经结束。你可以封存档案，查看总分、结局标签和跨人生成就。</p><p class="life-score">人生评分 <strong>${ending.lifeScore}</strong></p><p>${(ending.secondaryTags || []).join(' · ') || '没有额外标签'}</p><button class="primary" id="archive-life" type="button">封存档案并重新投胎</button>`;
+    panel.innerHTML = `<p class="eyebrow">结局</p><h2>${endingNames[ending.primaryEnding] || ending.primaryEnding}</h2><p>这段人生已经结束。你可以封存档案，查看总分、结局标签和跨人生成就。</p><p class="life-score">人生评分 <strong>${ending.lifeScore}</strong></p><p>${(ending.secondaryTags || []).join(' · ') || '没有额外标签'}</p><button class="primary" id="archive-life" type="button">封存档案并重新投胎</button>`;
     $('#archive-life').addEventListener('click', archiveAndRestart);
     return;
   }
   const view = eventView(life);
   if (!view) {
-    panel.innerHTML = '<p class="eyebrow">Loading</p><h2>正在生成下一段人生</h2>';
+    panel.innerHTML = '<p class="eyebrow">载入中</p><h2>正在生成下一段人生</h2>';
     return;
   }
   panel.innerHTML = `<span class="event-type">${view.type}</span><p class="event-caption">${view.caption}</p><h2>${view.title}</h2><p>${view.description}</p><div class="choice-list">${view.choices.map((choice) => `<button type="button" data-choice="${choice.id}"><strong>${choice.label}</strong><span>${choice.result}</span></button>`).join('')}</div>`;
@@ -173,7 +171,7 @@ async function init() {
 
 function showError(error) {
   console.error(error);
-  $('#event-panel').innerHTML = `<p class="eyebrow">Error</p><h2>无法继续人生模拟</h2><p>${error.message}</p>`;
+  $('#event-panel').innerHTML = `<p class="eyebrow">错误</p><h2>无法继续人生模拟</h2><p>${error.message}</p>`;
 }
 
 init().catch(showError);
