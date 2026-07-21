@@ -33,7 +33,7 @@ test('mobile choice controls remain reachable above the browser chrome', () => {
   assert.match(html, /#event-panel\{[^}]*overflow:hidden/);
   assert.match(html, /\.choice-list\{[^}]*overflow-y:auto/);
   assert.match(html, /\.choice-list\{[^}]*min-height:0/);
-  assert.match(html, /\.choice-list\{[^}]*padding-bottom:calc\([^)]*env\(safe-area-inset-bottom\)/);
+  assert.match(html, /padding:0 2px calc\(20px \+ env\(safe-area-inset-bottom\)\) 0/);
 });
 
 let passed = 0;
