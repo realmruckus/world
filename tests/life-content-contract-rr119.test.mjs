@@ -101,8 +101,7 @@ test('relationship fixtures include pause, crisis, recovery, breakup, and no-con
   const kinds = new Set(content.relationshipTransitions.map(({ kind }) => kind));
   for (const kind of ['pause', 'crisis', 'recovery', 'breakup', 'no_contact']) assert.ok(kinds.has(kind));
 
-  const recovery = content.relationshipTransitions.find((edge) => edge.kind === 'recovery');
-  content.relationshipTransitions = content.relationshipTransitions.filter((edge) => edge !== recovery);
+  content.relationshipTransitions = content.relationshipTransitions.filter((edge) => edge.kind !== 'recovery');
   assert.throws(() => contract.validateLifeContentPackage(content), /relationship.*recovery|Unreachable/i);
 });
 

@@ -2,26 +2,26 @@
   "schemaVersion": 1,
   "status": "fixture",
   "origins": [
-    { "id": "origin_working", "familyId": "family_working", "genderId": "gender_a", "zodiacSignId": "aries", "resources": { "wealth": 45, "education": 50, "familySupport": 65, "socialConnections": 45, "healthEnvironment": 55 }, "finance": { "income": 48000, "cash": 5000, "assets": 12000, "debt": 2000, "fixedExpenses": 30000 } },
-    { "id": "origin_professional", "familyId": "family_professional", "genderId": "gender_b", "zodiacSignId": "taurus", "resources": { "wealth": 65, "education": 80, "familySupport": 60, "socialConnections": 65, "healthEnvironment": 70 }, "finance": { "income": 90000, "cash": 12000, "assets": 50000, "debt": 10000, "fixedExpenses": 52000 } },
-    { "id": "origin_business", "familyId": "family_business", "genderId": "gender_c", "zodiacSignId": "gemini", "resources": { "wealth": 70, "education": 60, "familySupport": 55, "socialConnections": 80, "healthEnvironment": 60 }, "finance": { "income": 100000, "cash": 15000, "assets": 80000, "debt": 30000, "fixedExpenses": 60000 } },
-    { "id": "origin_single_parent", "familyId": "family_single_parent", "genderId": "gender_a", "zodiacSignId": "cancer", "resources": { "wealth": 35, "education": 50, "familySupport": 55, "socialConnections": 40, "healthEnvironment": 50 }, "finance": { "income": 36000, "cash": 2500, "assets": 5000, "debt": 5000, "fixedExpenses": 28000 } },
-    { "id": "origin_low_income", "familyId": "family_low_income", "genderId": "gender_b", "zodiacSignId": "leo", "resources": { "wealth": 20, "education": 35, "familySupport": 50, "socialConnections": 35, "healthEnvironment": 40 }, "finance": { "income": 22000, "cash": 500, "assets": 1000, "debt": 4000, "fixedExpenses": 20000 } }
+    { "id": "origin_working", "familyId": "family_working", "resources": { "wealth": 45, "education": 50, "familySupport": 65, "socialConnections": 45, "healthEnvironment": 55 }, "finance": { "income": 48000, "cash": 5000, "assets": 12000, "debt": 2000, "fixedExpenses": 30000 } },
+    { "id": "origin_professional", "familyId": "family_professional", "resources": { "wealth": 65, "education": 80, "familySupport": 60, "socialConnections": 65, "healthEnvironment": 70 }, "finance": { "income": 90000, "cash": 12000, "assets": 50000, "debt": 10000, "fixedExpenses": 52000 } },
+    { "id": "origin_business", "familyId": "family_business", "resources": { "wealth": 70, "education": 60, "familySupport": 55, "socialConnections": 80, "healthEnvironment": 60 }, "finance": { "income": 100000, "cash": 15000, "assets": 80000, "debt": 30000, "fixedExpenses": 60000 } },
+    { "id": "origin_single_parent", "familyId": "family_single_parent", "resources": { "wealth": 35, "education": 50, "familySupport": 55, "socialConnections": 40, "healthEnvironment": 50 }, "finance": { "income": 36000, "cash": 2500, "assets": 5000, "debt": 5000, "fixedExpenses": 28000 } },
+    { "id": "origin_low_income", "familyId": "family_low_income", "resources": { "wealth": 20, "education": 35, "familySupport": 50, "socialConnections": 35, "healthEnvironment": 40 }, "finance": { "income": 22000, "cash": 500, "assets": 1000, "debt": 4000, "fixedExpenses": 20000 } }
   ],
   "families": [
-    { "id": "family_working", "type": "working_class", "originId": "origin_working", "parentNpcIds": ["parent_working_a", "parent_working_b"] },
-    { "id": "family_professional", "type": "professional", "originId": "origin_professional", "parentNpcIds": ["parent_professional_a", "parent_professional_b"] },
-    { "id": "family_business", "type": "business", "originId": "origin_business", "parentNpcIds": ["parent_business_a", "parent_business_b"] },
-    { "id": "family_single_parent", "type": "single_parent", "originId": "origin_single_parent", "parentNpcIds": ["parent_single_a"] },
-    { "id": "family_low_income", "type": "low_income", "originId": "origin_low_income", "parentNpcIds": ["parent_low_a", "parent_low_b"] }
+    { "id": "family_working", "type": "working_class", "parentNpcIds": ["parent_working_a", "parent_working_b"] },
+    { "id": "family_professional", "type": "professional", "parentNpcIds": ["parent_professional_a", "parent_professional_b"] },
+    { "id": "family_business", "type": "business", "parentNpcIds": ["parent_business_a", "parent_business_b"] },
+    { "id": "family_single_parent", "type": "single_parent", "parentNpcIds": ["parent_single_a"] },
+    { "id": "family_low_income", "type": "low_income", "parentNpcIds": ["parent_low_a", "parent_low_b"] }
   ],
   "parentJobs": [
-    { "id": "job_service", "sector": "service", "incomeBand": "medium" },
-    { "id": "job_technical", "sector": "technical", "incomeBand": "medium" },
-    { "id": "job_professional", "sector": "professional", "incomeBand": "high" },
-    { "id": "job_business", "sector": "business", "incomeBand": "high" },
-    { "id": "job_care", "sector": "care", "incomeBand": "low" },
-    { "id": "job_unemployed", "sector": "unemployed", "incomeBand": "none" }
+    { "id": "job_service", "displayNameKey": "parent_job.service_worker", "sector": "service", "incomeBand": "medium" },
+    { "id": "job_technical", "displayNameKey": "parent_job.maintenance_technician", "sector": "technical", "incomeBand": "medium" },
+    { "id": "job_teacher", "displayNameKey": "parent_job.teacher", "sector": "education", "incomeBand": "medium" },
+    { "id": "job_nurse", "displayNameKey": "parent_job.nurse", "sector": "healthcare", "incomeBand": "medium" },
+    { "id": "job_business", "displayNameKey": "parent_job.business_operator", "sector": "business", "incomeBand": "high" },
+    { "id": "job_unemployed", "displayNameKey": "parent_job.unemployed", "sector": "unemployed", "incomeBand": "none" }
   ],
   "genders": [{ "id": "gender_a" }, { "id": "gender_b" }, { "id": "gender_c" }],
   "zodiacSigns": [
@@ -46,34 +46,34 @@
   "npcs": [
     { "id": "parent_working_a", "role": "parent", "parentJobId": "job_service" },
     { "id": "parent_working_b", "role": "parent", "parentJobId": "job_technical" },
-    { "id": "parent_professional_a", "role": "parent", "parentJobId": "job_professional" },
-    { "id": "parent_professional_b", "role": "parent", "parentJobId": "job_professional" },
+    { "id": "parent_professional_a", "role": "parent", "parentJobId": "job_teacher" },
+    { "id": "parent_professional_b", "role": "parent", "parentJobId": "job_nurse" },
     { "id": "parent_business_a", "role": "parent", "parentJobId": "job_business" },
     { "id": "parent_business_b", "role": "parent", "parentJobId": "job_service" },
-    { "id": "parent_single_a", "role": "parent", "parentJobId": "job_care" },
+    { "id": "parent_single_a", "role": "parent", "parentJobId": "job_nurse" },
     { "id": "parent_low_a", "role": "parent", "parentJobId": "job_service" },
     { "id": "parent_low_b", "role": "parent", "parentJobId": "job_unemployed" }
   ],
   "relationshipStates": [
     { "id": "potential" }, { "id": "dating" }, { "id": "exclusive" },
-    { "id": "cohabiting" }, { "id": "engaged" }, { "id": "married" }
+    { "id": "cohabiting" }, { "id": "engaged" }, { "id": "married" },
+    { "id": "paused" }, { "id": "broken_up" }, { "id": "no_contact" }
   ],
   "relationshipTransitions": [
-    { "id": "potential_to_dating", "from": "potential", "to": "dating" },
-    { "id": "dating_to_exclusive", "from": "dating", "to": "exclusive" },
-    { "id": "exclusive_to_cohabiting", "from": "exclusive", "to": "cohabiting" },
-    { "id": "cohabiting_to_engaged", "from": "cohabiting", "to": "engaged" },
-    { "id": "engaged_to_married", "from": "engaged", "to": "married" }
+    { "id": "potential_to_dating", "from": "potential", "to": "dating", "intent": "start_dating", "kind": "upgrade" },
+    { "id": "dating_to_exclusive", "from": "dating", "to": "exclusive", "intent": "become_exclusive", "kind": "upgrade" },
+    { "id": "exclusive_to_cohabiting", "from": "exclusive", "to": "cohabiting", "intent": "move_in", "kind": "upgrade" },
+    { "id": "cohabiting_to_engaged", "from": "cohabiting", "to": "engaged", "intent": "get_engaged", "kind": "upgrade" },
+    { "id": "engaged_to_married", "from": "engaged", "to": "married", "intent": "get_married", "kind": "upgrade" },
+    { "id": "dating_to_paused", "from": "dating", "to": "paused", "intent": "pause_relationship", "kind": "pause" },
+    { "id": "exclusive_crisis_pause", "from": "exclusive", "to": "paused", "intent": "pause_after_crisis", "kind": "crisis" },
+    { "id": "paused_to_dating", "from": "paused", "to": "dating", "intent": "resume_dating", "kind": "recovery" },
+    { "id": "paused_to_exclusive", "from": "paused", "to": "exclusive", "intent": "resume_exclusive", "kind": "recovery" },
+    { "id": "dating_to_broken_up", "from": "dating", "to": "broken_up", "intent": "break_up", "kind": "breakup" },
+    { "id": "exclusive_to_broken_up", "from": "exclusive", "to": "broken_up", "intent": "break_up", "kind": "breakup" },
+    { "id": "potential_to_no_contact", "from": "potential", "to": "no_contact", "intent": "end_contact", "kind": "no_contact" },
+    { "id": "broken_up_to_no_contact", "from": "broken_up", "to": "no_contact", "intent": "end_contact", "kind": "no_contact" }
   ],
   "metrics": [{ "id": "health" }, { "id": "relationship" }, { "id": "money" }],
-  "endings": [{ "id": "fixture_balanced_life", "metricIds": ["health", "relationship", "money"] }],
-  "simulationReport": {
-    "schemaVersion": 1,
-    "status": "not_run",
-    "requestedLifeCount": 10000,
-    "executedLifeCount": 0,
-    "ageBandEventCoverage": {},
-    "relationshipPathDistribution": {},
-    "endingDistribution": {}
-  }
+  "endings": [{ "id": "fixture_balanced_life", "metricIds": ["health", "relationship", "money"] }]
 }
