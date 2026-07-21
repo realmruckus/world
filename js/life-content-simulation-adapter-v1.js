@@ -23,12 +23,14 @@ const formalContent = {
 
 validateLifeContentPackage(contractContent);
 
-const identityCombinations = contractContent.families.flatMap((family) =>
-  contractContent.genders.flatMap((gender) =>
-    contractContent.zodiacSigns.map((zodiac) => composeLifeIdentity(contractContent, {
+const identityCombinations = contractContent.families.flatMap((family, familyIndex) =>
+  contractContent.genders.flatMap((gender, genderIndex) =>
+    contractContent.zodiacSigns.map((zodiac, zodiacIndex) => composeLifeIdentity(contractContent, {
       familyId: family.id,
       genderId: gender.id,
       zodiacSignId: zodiac.id,
+      parentJobIds: family.parentNpcIds.map((_, slotIndex) =>
+        contractContent.parentJobs[(familyIndex + genderIndex + zodiacIndex + slotIndex) % contractContent.parentJobs.length].id),
     })),
   ),
 );

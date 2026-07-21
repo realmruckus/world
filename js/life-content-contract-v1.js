@@ -224,15 +224,21 @@ export function composeLifeIdentity(content, selection) {
   if (!family) throw new Error(`Unknown Family: ${selection.familyId}`);
   if (!ids(content, 'genders').has(selection.genderId)) throw new Error(`Unknown Gender: ${selection.genderId}`);
   if (!ids(content, 'zodiacSigns').has(selection.zodiacSignId)) throw new Error(`Unknown Zodiac: ${selection.zodiacSignId}`);
+  if (!Array.isArray(selection.parentJobIds) || selection.parentJobIds.length !== family.parentNpcIds.length) {
+    throw new Error(`Identity Parent Job count must match Family parent slots: ${family.id}`);
+  }
+  const parentJobIds = ids(content, 'parentJobs');
+  for (const parentJobId of selection.parentJobIds) {
+    if (!parentJobIds.has(parentJobId)) throw new Error(`Unknown Parent Job: ${parentJobId}`);
+  }
   const origin = content.origins.find((item) => item.familyId === family.id);
-  const npcById = new Map(content.npcs.map((npc) => [npc.id, npc]));
   return {
     familyId: family.id,
     originId: origin.id,
     genderId: selection.genderId,
     zodiacSignId: selection.zodiacSignId,
     parentNpcIds: [...family.parentNpcIds],
-    parentJobIds: family.parentNpcIds.map((npcId) => npcById.get(npcId).parentJobId),
+    parentJobIds: [...selection.parentJobIds],
   };
 }
 
