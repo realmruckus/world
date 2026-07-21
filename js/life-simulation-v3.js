@@ -15,12 +15,17 @@ function assertContent(content) {
   }
 }
 
-function chooseForPolicy(policy, event, life) {
+function chooseForPolicy(policy, event, life, diagnostics) {
   if (!event?.choices?.length) throw new Error(`Event has no choices: ${event?.id || 'unknown'}`);
+  diagnostics.choiceCount += 1;
+  const fallback = [...event.choices].sort((a, b) => a.id.localeCompare(b.id))[0].id;
   const choiceId = typeof policy?.choose === 'function'
     ? policy.choose(deepClone(event), deepClone(life))
-    : [...event.choices].sort((a, b) => a.id.localeCompare(b.id))[0].id;
-  if (!event.choices.some((choice) => choice.id === choiceId)) throw new Error(`Policy returned unknown choice: ${choiceId}`);
+    : fallback;
+  if (!event.choices.some((choice) => choice.id === choiceId)) {
+    diagnostics.invalidChoiceCount += 1;
+    return fallback;
+  }
   return choiceId;
 }
 
@@ -50,7 +55,19 @@ function eventIdsFromTimeline(life) {
   return life.history.timeline.map((entry) => entry.eventId).filter(Boolean);
 }
 
-function summarizeLife(life, seed, turns) {
+function relationshipPathFromLife(life) {
+  const timelinePath = life.history.timeline
+    .map((entry) => entry.relationshipStatus)
+    .filter(Boolean);
+  const finalStatuses = life.relationships.map((item) => item.status).sort();
+  const path = [];
+  for (const status of [...timelinePath, ...finalStatuses]) {
+    if (path.at(-1) !== status) path.push(status);
+  }
+  return path;
+}
+
+function summarizeLife(life, seed, turns, diagnostics) {
   const eventIds = eventIdsFromTimeline(life);
   return {
     seed,
@@ -63,7 +80,9 @@ function summarizeLife(life, seed, turns) {
     uniqueEventCount: new Set(eventIds).size,
     careerId: life.career.id,
     relationshipStatuses: life.relationships.map((item) => item.status).sort(),
+    relationshipPath: relationshipPathFromLife(life),
     metrics: deepClone(life.derivedMetrics || {}),
+    diagnostics: deepClone(diagnostics),
   };
 }
 
@@ -74,6 +93,7 @@ export function runLife(seed, policy = {}, content) {
   const maxTurns = Number.isInteger(policy.maxTurns) ? policy.maxTurns : 10000;
   if (maxTurns < 1) throw new Error('Simulation maxTurns must be positive');
   let turns = 0;
+  const diagnostics = { romanceStalled: false, invalidChoiceCount: 0, choiceCount: 0, unlockedAchievements: [] };
 
   while (!shouldFinish(life, policy)) {
     if (turns >= maxTurns) throw new Error(`Simulation turn budget exceeded at seed ${seed}`);
@@ -81,7 +101,7 @@ export function runLife(seed, policy = {}, content) {
       const prepared = policy.beforeTurn(deepClone(life), turns, content);
       if (prepared) life = prepared;
     }
-    const choose = (event, state) => chooseForPolicy(policy, event, state);
+    const choose = (event, state) => chooseForPolicy(policy, event, state, diagnostics);
     if (life.clock.stage === 'romance') {
       life = runRomanceTurn(
         life,
@@ -102,11 +122,17 @@ export function runLife(seed, policy = {}, content) {
     turns += 1;
   }
 
+  diagnostics.romanceStalled = life.clock.stage === 'romance';
   if (life.alive !== false) {
     const metrics = calculateDerivedMetrics(life, content.metricRegistry, content.metricDsl);
     life = finalizeLife(life, metrics, content.endingRules);
   }
-  return { life, summary: summarizeLife(life, seed, turns) };
+  if (typeof policy.evaluateAchievements === 'function') {
+    const ids = policy.evaluateAchievements(deepClone(life), content);
+    if (!Array.isArray(ids) || ids.some((id) => typeof id !== 'string')) throw new Error('Policy achievements must be string IDs');
+    diagnostics.unlockedAchievements = [...new Set(ids)].sort();
+  }
+  return { life, summary: summarizeLife(life, seed, turns, diagnostics) };
 }
 
 function increment(map, key, amount = 1) {
@@ -120,11 +146,17 @@ export function summarizeBatch(results, content = null) {
   const eventFrequency = {};
   const careerDistribution = {};
   const relationshipStatusDistribution = {};
+  const relationshipPathDistribution = {};
+  const achievementFrequency = {};
   const metricTotals = {};
   let totalTurns = 0;
   let totalEvents = 0;
   let totalUniqueEventsPerLife = 0;
   let totalScore = 0;
+  let romanceStallCount = 0;
+  let invalidChoiceCount = 0;
+  let choiceCount = 0;
+  let achievementUnlockCount = 0;
 
   for (const result of results) {
     const summary = result?.summary;
@@ -133,12 +165,21 @@ export function summarizeBatch(results, content = null) {
     increment(deathCauseDistribution, summary.deathCause || 'unknown');
     increment(careerDistribution, summary.careerId || 'none');
     for (const status of summary.relationshipStatuses || []) increment(relationshipStatusDistribution, status);
+    const relationshipPath = (summary.relationshipPath || []).join('>') || 'none';
+    increment(relationshipPathDistribution, relationshipPath);
     for (const eventId of summary.eventIds || []) increment(eventFrequency, eventId);
+    for (const achievementId of summary.diagnostics?.unlockedAchievements || []) {
+      increment(achievementFrequency, achievementId);
+      achievementUnlockCount += 1;
+    }
     for (const [id, value] of Object.entries(summary.metrics || {})) metricTotals[id] = (metricTotals[id] || 0) + Number(value);
     totalTurns += summary.turns;
     totalEvents += (summary.eventIds || []).length;
     totalUniqueEventsPerLife += summary.uniqueEventCount || 0;
     totalScore += summary.lifeScore || 0;
+    if (summary.diagnostics?.romanceStalled) romanceStallCount += 1;
+    invalidChoiceCount += Number(summary.diagnostics?.invalidChoiceCount || 0);
+    choiceCount += Number(summary.diagnostics?.choiceCount || 0);
   }
 
   const lifeCount = results.length;
@@ -146,6 +187,7 @@ export function summarizeBatch(results, content = null) {
   const declaredEventCount = content
     ? new Set([...(content.annualEvents || []), ...(content.romanceEvents || []), ...(content.interruptEvents || [])].map((event) => event.id)).size
     : uniqueEventCount;
+  const declaredAchievementCount = Array.isArray(content?.achievementDefinitions) ? content.achievementDefinitions.length : 0;
   const metricAverages = Object.fromEntries(Object.entries(metricTotals).map(([id, total]) => [id, Math.round(total / lifeCount)]));
 
   return {
@@ -155,12 +197,17 @@ export function summarizeBatch(results, content = null) {
     eventFrequency,
     careerDistribution,
     relationshipStatusDistribution,
+    relationshipPathDistribution,
+    achievementFrequency,
     metricAverages,
     averageTurns: totalTurns / lifeCount,
     averageLifeScore: totalScore / lifeCount,
     uniqueEventCount,
     eventCoverageRate: declaredEventCount ? uniqueEventCount / declaredEventCount : 0,
     repeatRate: totalEvents ? 1 - (totalUniqueEventsPerLife / totalEvents) : 0,
+    romanceStallRate: romanceStallCount / lifeCount,
+    invalidChoiceRate: choiceCount ? invalidChoiceCount / choiceCount : 0,
+    achievementUnlockRate: declaredAchievementCount ? achievementUnlockCount / (lifeCount * declaredAchievementCount) : 0,
   };
 }
 
