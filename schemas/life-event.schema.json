@@ -1,125 +1,57 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://world.realmruckus.com/schemas/life-event.schema.json",
-  "title": "WORLD Life Simulation Event v2.1",
+  "title": "WORLD Life Simulation Event v3",
   "type": "object",
   "additionalProperties": false,
-  "required": ["id", "version", "type", "stage", "timeScale", "title", "description", "weight", "conditions", "choices"],
+  "required": ["id","version","type","stage","timeScale","scene","narration","weight","conditions","choices","aiTags"],
   "properties": {
-    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]{2,63}$" },
-    "version": { "const": 2 },
-    "type": { "enum": ["birth_family", "childhood", "education", "career", "wealth", "social", "romance", "parenting", "health", "legal_risk", "public_era", "opportunity", "values", "later_life"] },
-    "stage": { "enum": ["life", "romance"] },
-    "timeScale": { "enum": ["year", "week"] },
-    "canInterruptStage": { "type": "boolean", "default": false },
-    "relationshipResolution": { "type": "boolean", "default": false },
-    "tags": { "type": "array", "items": { "type": "string" }, "uniqueItems": true, "default": [] },
-    "rarity": { "enum": ["common", "uncommon", "rare", "legendary"], "default": "common" },
-    "priority": { "type": "integer", "minimum": 0, "maximum": 1000, "default": 100 },
-    "weight": { "type": "number", "exclusiveMinimum": 0 },
-    "cooldown": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["amount", "unit"],
-      "properties": {
-        "amount": { "type": "integer", "minimum": 0, "maximum": 5200 },
-        "unit": { "enum": ["year", "week"] }
-      }
-    },
-    "oncePerLife": { "type": "boolean", "default": false },
-    "milestone": { "type": "boolean", "default": false },
-    "conditions": { "$ref": "#/$defs/conditions" },
-    "title": { "type": "string", "minLength": 1, "maxLength": 80 },
-    "description": { "type": "string", "minLength": 1, "maxLength": 500 },
-    "visual": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "scene": { "type": "string" },
-        "variant": { "type": "integer", "minimum": 0 },
-        "caption": { "type": "string", "maxLength": 120 }
-      }
-    },
-    "choices": { "type": "array", "minItems": 1, "maxItems": 4, "items": { "$ref": "#/$defs/choice" } }
+    "id": {"type":"string","pattern":"^[a-z0-9][a-z0-9_-]{2,63}$"},
+    "version": {"const":3},
+    "type": {"enum":["birth_family","childhood","education","career","wealth","social","romance","parenting","health","legal_risk","public_era","opportunity","values","later_life"]},
+    "stage": {"enum":["life","romance"]},
+    "timeScale": {"enum":["year","week"]},
+    "canInterruptStage": {"type":"boolean","default":false},
+    "relationshipResolution": {"type":"boolean","default":false},
+    "priority": {"type":"integer","minimum":0,"maximum":1000,"default":100},
+    "weight": {"type":"number","exclusiveMinimum":0},
+    "rarity": {"enum":["common","uncommon","rare","legendary"],"default":"common"},
+    "cooldown": {"$ref":"#/$defs/duration"},
+    "oncePerLife": {"type":"boolean","default":false},
+    "milestone": {"type":"boolean","default":false},
+    "conditions": {"$ref":"#/$defs/conditions"},
+    "scene": {"type":"object","additionalProperties":false,"required":["id"],"properties":{"id":{"type":"string"},"variant":{"type":"integer","minimum":0},"caption":{"type":"string","maxLength":120}}},
+    "narration": {"type":"object","additionalProperties":false,"required":["title","description"],"properties":{"title":{"type":"string","minLength":1,"maxLength":80},"description":{"type":"string","minLength":1,"maxLength":500}}},
+    "probabilityModifiers": {"type":"array","items":{"$ref":"#/$defs/probabilityModifier"},"default":[]},
+    "aiTags": {"type":"array","minItems":1,"items":{"type":"string"},"uniqueItems":true},
+    "choices": {"type":"array","minItems":1,"maxItems":4,"items":{"$ref":"#/$defs/choice"}}
   },
   "$defs": {
-    "conditions": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "age": { "type": "object", "additionalProperties": false, "properties": { "min": { "type": "integer", "minimum": 0, "maximum": 130 }, "max": { "type": "integer", "minimum": 0, "maximum": 130 } } },
-        "weekInStage": { "type": "object", "additionalProperties": false, "properties": { "min": { "type": "integer", "minimum": 0, "maximum": 52 }, "max": { "type": "integer", "minimum": 0, "maximum": 52 } } },
-        "requiredTags": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
-        "forbiddenTags": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
-        "flagsAll": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
-        "flagsNone": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
-        "statMin": { "$ref": "#/$defs/numberMap" },
-        "statMax": { "$ref": "#/$defs/numberMap" },
-        "resourceMin": { "$ref": "#/$defs/numberMap" },
-        "resourceMax": { "$ref": "#/$defs/numberMap" },
-        "careerIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
-        "educationIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
-        "relationship": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["role"],
-          "properties": {
-            "role": { "type": "string" },
-            "status": { "enum": ["active", "estranged", "deceased", "potential", "dating", "exclusive", "cohabiting", "engaged", "married", "paused", "broken_up", "no_contact"] },
-            "closenessMin": { "type": "number", "minimum": 0, "maximum": 100 },
-            "conflictMax": { "type": "number", "minimum": 0, "maximum": 100 }
-          }
-        }
-      }
-    },
-    "choice": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["id", "label", "result", "effects"],
-      "properties": {
-        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]{1,47}$" },
-        "label": { "type": "string", "minLength": 1, "maxLength": 100 },
-        "hint": { "type": "string", "maxLength": 160 },
-        "result": { "type": "string", "minLength": 1, "maxLength": 500 },
-        "effects": { "type": "array", "items": { "$ref": "#/$defs/effect" } },
-        "futureEffects": { "type": "array", "items": { "$ref": "#/$defs/futureEffect" } },
-        "nextEventId": { "type": "string" },
-        "endingId": { "type": "string" }
-      }
-    },
-    "effect": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["op"],
-      "properties": {
-        "op": { "enum": ["add_stat", "set_stat", "add_resource", "set_resource", "add_tag", "remove_tag", "set_flag", "clear_flag", "set_identity", "create_relationship", "modify_relationship", "end_relationship", "append_experience", "set_career", "set_education", "schedule_event", "enter_stage", "exit_stage"] },
-        "key": { "type": "string" },
-        "value": {},
-        "amount": { "type": "number" },
-        "unit": { "enum": ["year", "week"] },
-        "role": { "type": "string" },
-        "relationshipId": { "type": "string" },
-        "eventId": { "type": "string" },
-        "stage": { "enum": ["life", "romance"] },
-        "payload": { "type": "object" }
-      }
-    },
-    "futureEffect": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["after", "unit", "effects"],
-      "properties": {
-        "after": { "type": "integer", "minimum": 1, "maximum": 5200 },
-        "unit": { "enum": ["year", "week"] },
-        "conditions": { "$ref": "#/$defs/conditions" },
-        "effects": { "type": "array", "items": { "$ref": "#/$defs/effect" } }
-      }
-    },
-    "numberMap": { "type": "object", "additionalProperties": { "type": "number" } }
+    "duration": {"type":"object","additionalProperties":false,"required":["amount","unit"],"properties":{"amount":{"type":"integer","minimum":0,"maximum":5200},"unit":{"enum":["year","week"]}}},
+    "conditions": {"type":"object","additionalProperties":false,"properties":{"age":{"type":"object","additionalProperties":false,"properties":{"min":{"type":"integer","minimum":0,"maximum":130},"max":{"type":"integer","minimum":0,"maximum":130}}},"weekInStage":{"type":"object","additionalProperties":false,"properties":{"min":{"type":"integer","minimum":0,"maximum":52},"max":{"type":"integer","minimum":0,"maximum":52}}},"requiredTags":{"type":"array","items":{"type":"string"},"uniqueItems":true},"forbiddenTags":{"type":"array","items":{"type":"string"},"uniqueItems":true},"flagsAll":{"type":"array","items":{"type":"string"},"uniqueItems":true},"flagsNone":{"type":"array","items":{"type":"string"},"uniqueItems":true},"statMin":{"$ref":"#/$defs/numberMap"},"statMax":{"$ref":"#/$defs/numberMap"},"resourceMin":{"$ref":"#/$defs/numberMap"},"resourceMax":{"$ref":"#/$defs/numberMap"},"relationship":{"type":"object","additionalProperties":false,"properties":{"role":{"type":"string"},"status":{"$ref":"#/$defs/relationshipStatus"},"dimensionMin":{"$ref":"#/$defs/numberMap"},"dimensionMax":{"$ref":"#/$defs/numberMap"}}}},
+    "probabilityModifier": {"type":"object","additionalProperties":false,"required":["conditions","multiplier"],"properties":{"conditions":{"$ref":"#/$defs/conditions"},"multiplier":{"type":"number","minimum":0,"maximum":10}}},
+    "choice": {"type":"object","additionalProperties":false,"required":["id","label","result","commands"],"properties":{"id":{"type":"string","pattern":"^[a-z0-9][a-z0-9_-]{1,47}$"},"label":{"type":"string","minLength":1,"maxLength":100},"hint":{"type":"string","maxLength":160},"result":{"type":"string","minLength":1,"maxLength":500},"commands":{"type":"array","items":{"$ref":"#/$defs/command"}},"futureCommands":{"type":"array","items":{"$ref":"#/$defs/futureCommand"}},"nextEventId":{"type":"string"},"endingId":{"type":"string"}}},
+    "command": {"oneOf":[
+      {"$ref":"#/$defs/keyAmountCommand"},
+      {"$ref":"#/$defs/keyValueCommand"},
+      {"$ref":"#/$defs/tagCommand"},
+      {"$ref":"#/$defs/flagCommand"},
+      {"$ref":"#/$defs/relationshipCommand"},
+      {"$ref":"#/$defs/simpleCommand"}
+    ]},
+    "keyAmountCommand": {"type":"object","additionalProperties":false,"required":["op","key","amount"],"properties":{"op":{"enum":["AddStat","AddResource"]},"key":{"type":"string"},"amount":{"type":"number"}}},
+    "keyValueCommand": {"type":"object","additionalProperties":false,"required":["op","key","value"],"properties":{"op":{"enum":["SetStat","SetResource","SetCareer","SetEducation"]},"key":{"type":"string"},"value":{}}},
+    "tagCommand": {"type":"object","additionalProperties":false,"required":["op","tag"],"properties":{"op":{"enum":["AddTag","RemoveTag","UnlockAchievement"]},"tag":{"type":"string"}}},
+    "flagCommand": {"type":"object","additionalProperties":false,"required":["op","flag"],"properties":{"op":{"enum":["SetFlag","ClearFlag"]},"flag":{"type":"string"},"value":{}}},
+    "relationshipCommand": {"type":"object","additionalProperties":false,"required":["op"],"properties":{"op":{"enum":["CreateRelationship","ModifyRelationship","RequestRelationshipTransition","EndRelationship"]},"relationshipId":{"type":"string"},"role":{"type":"string"},"name":{"type":"string"},"dimensions":{"$ref":"#/$defs/numberMap"},"targetStatus":{"$ref":"#/$defs/relationshipStatus"},"reason":{"type":"string"}}},
+    "simpleCommand": {"type":"object","additionalProperties":false,"required":["op"],"properties":{"op":{"enum":["AppendExperience","ScheduleEvent","EnterStage","ExitStage"]},"stage":{"enum":["life","romance"]},"eventId":{"type":"string"},"payload":{"type":"object"},"experience":{"type":"object"}}},
+    "futureCommand": {"type":"object","additionalProperties":false,"required":["after","commands"],"properties":{"after":{"$ref":"#/$defs/duration"},"conditions":{"$ref":"#/$defs/conditions"},"commands":{"type":"array","items":{"$ref":"#/$defs/command"}}}},
+    "relationshipStatus": {"enum":["active","estranged","deceased","potential","dating","exclusive","cohabiting","engaged","married","paused","broken_up","no_contact"]},
+    "numberMap": {"type":"object","additionalProperties":{"type":"number"}}
   },
   "allOf": [
-    { "if": { "properties": { "type": { "const": "romance" } }, "required": ["type"] }, "then": { "properties": { "stage": { "const": "romance" }, "timeScale": { "const": "week" } } } },
-    { "if": { "properties": { "stage": { "const": "life" } }, "required": ["stage"] }, "then": { "properties": { "timeScale": { "const": "year" } } } },
-    { "if": { "properties": { "relationshipResolution": { "const": true } }, "required": ["relationshipResolution"] }, "then": { "properties": { "stage": { "const": "romance" }, "timeScale": { "const": "week" }, "priority": { "minimum": 900 } } } }
+    {"if":{"properties":{"canInterruptStage":{"const":false},"stage":{"const":"life"}},"required":["canInterruptStage","stage"]},"then":{"properties":{"timeScale":{"const":"year"}}}},
+    {"if":{"properties":{"canInterruptStage":{"const":false},"stage":{"const":"romance"}},"required":["canInterruptStage","stage"]},"then":{"properties":{"timeScale":{"const":"week"}}}},
+    {"if":{"properties":{"relationshipResolution":{"const":true}},"required":["relationshipResolution"]},"then":{"properties":{"stage":{"const":"romance"},"timeScale":{"const":"week"},"priority":{"minimum":900}}}}
   ]
 }
