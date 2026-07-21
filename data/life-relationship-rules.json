@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 3,
+  "dimensions": ["attraction", "love", "trust", "conflict", "dependence", "respect", "passion", "commitment"],
+  "range": { "min": 0, "max": 100 },
+  "unknownStatusPolicy": "error",
+  "transitionPolicy": {
+    "requiresIntent": ["dating", "exclusive", "cohabiting", "engaged", "married", "broken_up", "no_contact"],
+    "noAutomaticSkipping": true,
+    "failureMode": "reject_command"
+  },
+  "transitions": [
+    { "from": "potential", "to": "dating", "intent": "start_dating", "min": { "attraction": 45, "trust": 25 }, "max": { "conflict": 70 } },
+    { "from": "dating", "to": "exclusive", "intent": "become_exclusive", "min": { "love": 55, "trust": 50, "respect": 45, "commitment": 35 }, "max": { "conflict": 60 } },
+    { "from": "exclusive", "to": "cohabiting", "intent": "move_in", "min": { "love": 65, "trust": 60, "respect": 55, "commitment": 55 }, "max": { "conflict": 55 } },
+    { "from": "cohabiting", "to": "engaged", "intent": "get_engaged", "min": { "love": 72, "trust": 68, "respect": 62, "commitment": 72 }, "max": { "conflict": 50 } },
+    { "from": "engaged", "to": "married", "intent": "get_married", "min": { "love": 75, "trust": 72, "respect": 65, "commitment": 82 }, "max": { "conflict": 50 } },
+    { "from": "dating", "to": "paused", "intent": "pause_relationship", "min": {}, "max": {} },
+    { "from": "exclusive", "to": "paused", "intent": "pause_relationship", "min": {}, "max": {} },
+    { "from": "paused", "to": "dating", "intent": "resume_dating", "min": { "trust": 35 }, "max": { "conflict": 75 } },
+    { "from": "paused", "to": "exclusive", "intent": "resume_exclusive", "min": { "love": 50, "trust": 45 }, "max": { "conflict": 70 } },
+    { "from": "potential", "to": "no_contact", "intent": "end_contact", "min": {}, "max": {} },
+    { "from": "dating", "to": "broken_up", "intent": "break_up", "min": {}, "max": {} },
+    { "from": "exclusive", "to": "broken_up", "intent": "break_up", "min": {}, "max": {} },
+    { "from": "cohabiting", "to": "broken_up", "intent": "break_up", "min": {}, "max": {} },
+    { "from": "engaged", "to": "broken_up", "intent": "break_up", "min": {}, "max": {} },
+    { "from": "married", "to": "broken_up", "intent": "separate", "min": {}, "max": {} }
+  ],
+  "hardLimitResolution": {
+    "atWeeks": 52,
+    "priorityMinimum": 900,
+    "allowedIntents": ["become_exclusive", "move_in", "get_engaged", "get_married", "pause_relationship", "break_up", "end_contact"]
+  }
+}
