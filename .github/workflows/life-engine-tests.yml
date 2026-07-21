@@ -38,6 +38,8 @@ jobs:
         run: node tests/life-romance-engine-v3.test.mjs
       - name: Test Metric and Ending Engines
         run: node tests/life-metric-ending-v3.test.mjs
+      - name: Test Audit Metric Regressions
+        run: node tests/life-audit-regressions-v3.test.mjs
       - name: Test Save Archive and Achievements
         run: node tests/life-save-achievement-v3.test.mjs
       - name: Test Deterministic Simulation
