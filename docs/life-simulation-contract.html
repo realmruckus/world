@@ -1,180 +1,19 @@
-<!doctype html>
-<html lang="zh-CN">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="WORLD M00 人生模拟状态、时间、Effect、事件、结局和存档契约 v2">
-  <title>人生模拟数据与规则契约 v2 · WORLD</title>
-  <link rel="stylesheet" href="../styles.css">
-  <script type="module" src="../js/components/site-header.js"></script>
-</head>
-<body>
-  <world-site-header></world-site-header>
-  <main class="page">
-    <p class="eyebrow">RR-95 · Contract Freeze v2</p>
-    <h1>人生模拟数据与规则契约 v2</h1>
-    <p class="lead">本页冻结 M00 第二版实现契约。人生主线按年展开，恋爱阶段按周展开；玩家每次完成一个选择，只推进当前阶段的一个时间单位。</p>
-
-    <section>
-      <h2>一、正式文件</h2>
-      <ul class="card-list">
-        <li><a href="../schemas/life-event.schema.json"><strong>life-event.schema.json</strong></a><p>事件、时间尺度、条件、选择、Effect、延迟后果和链式事件的数据约束。</p></li>
-        <li><a href="../schemas/life-save.schema.json"><strong>life-save.schema.json</strong></a><p>混合时间轴、当前人生、历史人生、成就、设置和存档版本的数据约束。</p></li>
-        <li><a href="../data/life-ending-rules.json"><strong>life-ending-rules.json</strong></a><p>死亡原因、主结局、次级标签、优先级和评分权重。</p></li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>二、混合时间模型</h2>
-      <div class="grid two">
-        <article><h3>人生阶段</h3><p><code>stage = life</code>，<code>timeScale = year</code>。每次选择后年龄推进 1 年，并进入下一年度事件。</p></article>
-        <article><h3>恋爱阶段</h3><p><code>stage = romance</code>，<code>timeScale = week</code>。每次选择后推进 1 周，用于约会、关系磨合、表白、同居、冲突和承诺等连续事件。</p></article>
-      </div>
-      <pre>Life Clock
-├─ ageYears：完整年龄
-├─ weekOfYear：当前年龄内第 0–51 周
-├─ totalWeeks：从出生起累计周数
-├─ stage：life | romance
-├─ timeScale：year | week
-└─ stageWeek：当前恋爱阶段累计周数</pre>
-      <ul>
-        <li>人生阶段选择：<code>ageYears += 1</code>，<code>totalWeeks += 52</code>，<code>weekOfYear</code> 保持 0。</li>
-        <li>恋爱阶段选择：<code>totalWeeks += 1</code>，<code>weekOfYear += 1</code>；达到 52 周时年龄增加 1，周数归零。</li>
-        <li>进入恋爱阶段时不额外推进时间；退出恋爱阶段时也不额外推进时间。</li>
-        <li>所有时间推进只能发生在选择成功结算之后，查看档案、切换面板和导出存档不推进时间。</li>
-        <li>恋爱阶段结束后回到人生阶段；下一次人生事件选择仍推进 1 年。</li>
-        <li>普通非恋爱事件不得在恋爱周阶段混入随机池；公共危机或健康紧急事件需要显式标记可中断恋爱阶段。</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>三、人物状态结构</h2>
-      <pre>LifeState
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="WORLD M00 人生模拟数据与规则契约 v2.1"><title>人生模拟数据与规则契约 v2.1 · WORLD</title><link rel="stylesheet" href="../styles.css"><script type="module" src="../js/components/site-header.js"></script></head><body><world-site-header></world-site-header><main class="page"><p class="eyebrow">RR-95 · Contract Freeze v2.1</p><h1>人生模拟数据与规则契约 v2.1</h1><p class="lead">本契约解决混合时间、恋爱状态机、阶段长度、派生指标与中断优先级。后续 Engine、内容、UI、测试、Simulation 与存档迁移必须以本页和对应 Schema 为准。</p><section><h2>一、Canonical Clock</h2><ul><li><code>clock.totalWeeks</code> 是唯一权威时间。</li><li><code>ageYears = floor(totalWeeks / 52)</code>，<code>weekOfYear = totalWeeks % 52</code>，两者为派生值。</li><li>年度选择成功后 <code>totalWeeks += 52</code>；周制选择成功后 <code>totalWeeks += 1</code>。</li><li>进入或退出阶段不推进时间，不修改 totalWeeks，也不清零 weekOfYear。</li><li>所有年龄条件读取派生 ageYears；所有计划事件以 dueAtTotalWeeks 判断。</li></ul></section><section><h2>二、阶段与关系状态机</h2><pre>stage: life | romance
+romanceStatus:
+none → potential → dating → exclusive → cohabiting → engaged → married
+                    ↘ paused → broken_up → no_contact</pre><ul><li>进入 romance：当前存在 role=partner_candidate 的关系，状态为 potential 或 dating，并由明确选择执行 enter_stage。</li><li>退出 romance：married、broken_up、no_contact、对象移除、主动结束或硬上限定性。</li><li>婚后日常、育儿与长期家庭事件属于 life/year；婚姻危机可创建新的 romance/week 子阶段。</li><li>单段目标 6–16 个选择，软上限 26 周，硬上限 52 周。到达硬上限必须抽取最高优先级 relationship_resolution 事件。</li><li>无主要事件的周由 Engine 自动快进到下一个有效周或到期 scheduled，不写入“平静周”玩家选择。</li></ul></section><section><h2>三、状态结构</h2><pre>LifeState
 ├─ id / seed / rngCursor / createdAt
 ├─ identity
-│  ├─ name / genderExpression / birthYear / region
-│  ├─ familyBackground / educationId / careerId
-│  ├─ maritalStatus / childrenCount / housingStatus
-├─ clock
-│  ├─ ageYears / weekOfYear / totalWeeks
-│  └─ stage / timeScale / stageWeek
+├─ clock: totalWeeks / stage / stageStartedAtWeeks
 ├─ alive
-├─ stats
-│  ├─ health / happiness / smarts / charm
-│  ├─ fitness / discipline / empathy / stress
-├─ resources
-│  ├─ cash / income / debt / assets
-│  ├─ careerLevel / reputation / freeTime
-│  └─ financialSecurity
+├─ stats / resources
 ├─ relationships[]
 ├─ tags[] / flags{}
 ├─ experiences[] / timeline[]
 ├─ cooldowns{}
 ├─ scheduled[]
+├─ derivedMetrics
 ├─ pendingEvent
-└─ ending</pre>
-      <p>所有核心属性使用 0–100。现金、收入、债务和资产使用非负整数；净资产由资产与债务派生，不作为第二份正式字段存储。关系必须使用独立对象，不再使用汇总数字代替真实人物。</p>
-    </section>
-
-    <section>
-      <h2>四、事件时间约束</h2>
-      <ul>
-        <li>每个事件必须声明 <code>timeScale</code>。</li>
-        <li>恋爱类事件必须声明 <code>type = romance</code>、<code>stage = romance</code>、<code>timeScale = week</code>。</li>
-        <li>人生主线事件默认声明 <code>stage = life</code>、<code>timeScale = year</code>。</li>
-        <li>冷却、延迟后果和计划事件必须同时保存数值与单位，不得再使用含义不明的单一整数。</li>
-        <li>所有计划事件统一换算为 <code>dueAtTotalWeeks</code> 存储，避免跨年和跨阶段时计算歧义。</li>
-        <li>恋爱事件可使用 <code>weekInStage</code> 条件控制第几周进入表白、确认关系、同居或分手节点。</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>五、Effect 操作表</h2>
-      <div class="grid two">
-        <article><h3>数值</h3><p><code>add_stat</code>、<code>set_stat</code>、<code>add_resource</code>、<code>set_resource</code>。属性结算后统一截断到合法范围。</p></article>
-        <article><h3>标签与状态</h3><p><code>add_tag</code>、<code>remove_tag</code>、<code>set_flag</code>、<code>clear_flag</code>。</p></article>
-        <article><h3>身份与经历</h3><p><code>set_identity</code>、<code>set_career</code>、<code>set_education</code>、<code>append_experience</code>。</p></article>
-        <article><h3>关系</h3><p><code>create_relationship</code>、<code>modify_relationship</code>、<code>end_relationship</code>。</p></article>
-        <article><h3>阶段与未来事件</h3><p><code>enter_stage</code>、<code>exit_stage</code>、<code>schedule_event</code>。进入或退出阶段本身不推进时间。</p></article>
-        <article><h3>禁止做法</h3><p>禁止在事件 JSON 中嵌入 JavaScript、任意表达式或直接修改未知路径；所有行为必须由白名单操作解释执行。</p></article>
-      </div>
-    </section>
-
-    <section>
-      <h2>六、事件选择顺序</h2>
-      <ol>
-        <li>根据 clock 确认当前 stage 与 timeScale。</li>
-        <li>结算当前 <code>totalWeeks</code> 已到期的 scheduled 项。</li>
-        <li>检查当前阶段的强制链式事件和里程碑事件。</li>
-        <li>检查允许中断当前阶段的危机事件。</li>
-        <li>筛选时间尺度、年龄、阶段周数、标签、Flag、属性、资源、职业、教育和关系条件。</li>
-        <li>排除冷却中和 oncePerLife 已完成事件。</li>
-        <li>按 priority 选择最高优先层。</li>
-        <li>仅在同一优先层中按 weight 加权抽取。</li>
-        <li>使用 seed 与 rngCursor 产生可重放随机结果。</li>
-      </ol>
-    </section>
-
-    <section>
-      <h2>七、选择结算顺序</h2>
-      <pre>验证 choiceId
-→ 复制当前状态
-→ 依序执行即时 effects
-→ 写入 futureEffects / nextEventId
-→ 更新 cooldown 与 oncePerLife 记录
-→ 写入 experience
-→ 写入不可变 timeline 条目和 delta 摘要
-→ 按当前 timeScale 推进 1 年或 1 周
-→ 重新计算派生值
-→ 检查结构合法性
-→ 检查生命结束与结局
-→ 保存本地存档</pre>
-      <p>任一 Effect 或时间推进非法时，整次选择不得产生部分写入。第一版浏览器实现使用内存复制实现原子性。</p>
-    </section>
-
-    <section>
-      <h2>八、恋爱阶段边界</h2>
-      <ul>
-        <li>恋爱阶段不是整个人生的永久周制，而是一个可进入、可退出的局部高密度事件阶段。</li>
-        <li>进入条件通常是建立潜在伴侣关系、接受约会或触发明确恋爱机会。</li>
-        <li>退出条件包括确认长期关系、结婚、分手、失联、主动结束或达到阶段最长周数。</li>
-        <li>原型默认单次恋爱阶段最多 104 周；达到上限仍未产生明确结果时，必须触发关系定性事件。</li>
-        <li>每周只出现一个主要选择，避免同一周同时处理多个恋爱事件。</li>
-        <li>婚后日常、育儿和长期家庭生活回归按年推进；只有明确的恋爱或关系危机短阶段可再次切入周制。</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>九、结局判定</h2>
-      <ol>
-        <li>先确定生命是否结束以及 deathCauseId。</li>
-        <li>筛选满足 conditions 的主结局。</li>
-        <li>按 priority 从高到低比较。</li>
-        <li>同优先级按该结局 score 公式比较。</li>
-        <li>仍相同时按 id 字典序确定，确保可重放。</li>
-        <li>只保留一个 primaryEnding。</li>
-        <li>额外计算最多六个 secondaryTags。</li>
-        <li>人生总评分按 wellbeing、relationships、growth、stability、legacy 五维加权生成。</li>
-      </ol>
-    </section>
-
-    <section>
-      <h2>十、本地存档</h2>
-      <p>由于时间模型属于破坏性变更，localStorage 正式 Key 提升为 <code>realmruckus.world.life.v2</code>，根对象 <code>schemaVersion = 2</code>。</p>
-      <ul>
-        <li>存档必须保存完整 clock、seed 与 rngCursor。</li>
-        <li>历史人生最多保存 100 份；超出后删除最旧档案。</li>
-        <li>导入前必须进行 Schema 校验，失败时不得覆盖现有存档。</li>
-        <li>v1 迁移为 v2 时：旧 age 转为 ageYears，weekOfYear 与 stageWeek 设为 0，totalWeeks 设为 age × 52，stage 设为 life。</li>
-        <li>旧冷却年数转换为 <code>{ remaining, unit: "year" }</code>；旧 dueAge 转为 <code>dueAtTotalWeeks = dueAge × 52</code>。</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>十一、冻结状态</h2>
-      <p><strong>Contract v2 已冻结。</strong>本次变更替代 Contract v1 的单一年度时间模型。后续删除字段、改变时间推进语义、改变阶段边界或改变存档 Key，必须再次提升 schemaVersion 并提供迁移测试。</p>
-    </section>
-  </main>
-  <footer>© 2026 Bostage Pte. Ltd. · Realm Ruckus™ · WORLD MVP</footer>
-</body>
-</html>
+└─ ending</pre><p>ageYears、weekOfYear、stageWeek、净资产等均为派生值。事件不得直接写 derivedMetrics。</p></section><section><h2>四、事件与中断优先级</h2><ol><li>结算到期 scheduled effects。</li><li>检查死亡与不可继续状态。</li><li>检查强制链式事件。</li><li>检查允许中断阶段的健康、法律和公共危机。</li><li>检查当前阶段里程碑与硬上限定性。</li><li>筛选 stage、timeScale、年龄、stageWeek、关系、标签、Flag、属性和资源。</li><li>排除 oncePerLife 与冷却事件。</li><li>最高 priority 层内按 weight 抽取。</li></ol><p>只有标记 <code>canInterruptStage=true</code> 的非恋爱事件可以进入 romance 事件池。</p></section><section><h2>五、Effect 与原子结算</h2><p>白名单操作包括数值、资源、标签、Flag、身份、职业、教育、关系、经历、计划事件、enter_stage 与 exit_stage。选择结算顺序：</p><pre>验证 choiceId → 深拷贝 → 即时 effects → futureEffects/nextEvent
+→ cooldown/oncePerLife → experience/timeline → 按结算前 timeScale 推进时间
+→ 重新计算派生指标 → Schema 校验 → 结束检查 → 原子保存</pre><p>阶段切换 Effect 在本次选择中生效，但本次推进单位取事件声明的 timeScale，避免 enter_stage 后同一次选择误按周推进。</p></section><section><h2>六、派生指标定义</h2><ul><li><strong>businessSuccess：</strong>创业相关经历分、企业资产与持续盈利归一化到 0–100。</li><li><strong>peopleHelped：</strong>带有 helped_person 的唯一经历数量。</li><li><strong>familyStability：</strong>存续家庭关系的亲密与信任均值，扣除冲突与断裂惩罚。</li><li><strong>partnerCloseness：</strong>当前或最后一段长期伴侣关系 closeness。</li><li><strong>relationshipYears：</strong>长期伴侣关系累计周数 ÷ 52。</li><li><strong>lifeVariety：</strong>经历类型、职业、地区和重大活动的去重覆盖率。</li><li><strong>lateLifeGrowth：</strong>50 岁后属性、教育、事业和关系改善的归一化增量。</li><li><strong>turningPoints：</strong>标记 turning_point 的唯一经历数量。</li><li><strong>unresolvedGoals：</strong>active_goal 且未有 completed_goal 对应项的数量。</li><li><strong>loneliness：</strong>100 减去有效亲密关系支持度，截断到 0–100。</li><li><strong>careerChanges / educationEvents / riskTurns / recoveryTurns：</strong>对应经历标签计数。</li><li><strong>peakWealth / largestLoss：</strong>时间线资产快照的历史峰值与最大峰谷跌幅归一化值。</li></ul></section><section><h2>七、冷却与计划事件</h2><p>冷却保存为 <code>{remaining, unit}</code>，运行时统一换算为 cooldownUntilTotalWeeks。scheduled 保存 dueAtTotalWeeks。年单位按 52 周精确换算。</p></section><section><h2>八、存档</h2><p>localStorage Key 为 <code>realmruckus.world.life.v2</code>，schemaVersion=2。存档保存 totalWeeks、stage、stageStartedAtWeeks、关系状态、seed、rngCursor、scheduled 与基础历史；派生值允许保存缓存，但加载后必须重新计算并覆盖。</p></section><section><h2>九、质量与测试闸门</h2><ul><li>51→52 周跨年、任意 weekOfYear 退出恋爱、年度推进保持周偏移。</li><li>硬上限定性、空白周快进、危机中断和恢复阶段。</li><li>年/周冷却、跨阶段 scheduled、死亡优先级。</li><li>v1→v2 迁移、保存恢复、固定种子重放。</li><li>恋爱卡死率 0；伪选择率低于 15%；单一结局 Simulation 占比原则上不超过 35%。</li></ul></section><section><h2>十、冻结状态</h2><p><strong>Contract v2.1 已冻结。</strong>删除字段、改变 canonical clock、阶段状态机、结算顺序或存档 Key 均属于破坏性变更。</p></section></main><footer>© 2026 Bostage Pte. Ltd. · Realm Ruckus™ · WORLD MVP</footer></body></html>
