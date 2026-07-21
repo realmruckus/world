@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="WORLD 人生重开探索验证程序">
+  <title>人生重开实验室 · Realm Ruckus WORLD</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./js/components/site-header.js"></script>
+  <script type="module" src="./js/life-sim.js"></script>
+  <style>
+    .life-shell{max-width:1180px;margin:0 auto;padding:28px 20px 72px}.life-toolbar{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-bottom:18px}.life-toolbar button,.choice-list button,.primary{border:1px solid var(--border,#d8d8d8);border-radius:12px;background:var(--surface,#fff);padding:10px 14px;cursor:pointer}.primary{background:#202124;color:#fff;border-color:#202124;font-weight:700}.life-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(300px,.95fr);gap:22px}.life-card{border:1px solid var(--border,#ddd);border-radius:20px;padding:22px;background:var(--surface,#fff)}#profile{display:flex;align-items:center;gap:18px;margin-bottom:20px}#profile svg{width:96px;flex:0 0 96px;color:#242424}#profile h1{margin:.2rem 0;font-size:2rem}.life-meter{display:grid;grid-template-columns:48px 1fr 34px;gap:10px;align-items:center;margin:10px 0}.life-meter>div{height:10px;border-radius:99px;background:#ececec;overflow:hidden}.life-meter i{display:block;height:100%;background:#202124;border-radius:inherit}.life-meter strong{text-align:right}.fact-list,.archive-list,.achievement-list{list-style:none;padding:0;margin:18px 0 0}.fact-list li,.archive-list li,.achievement-list li{display:flex;justify-content:space-between;gap:18px;padding:11px 0;border-top:1px solid #eee}.fact-list span,.archive-list span,.achievement-list span{color:#666}.event-type{display:inline-block;border-radius:99px;background:#f1f1f1;padding:5px 9px;font-size:.8rem;text-transform:uppercase}.choice-list{display:grid;gap:10px;margin-top:20px}.choice-list button{text-align:left}.choice-list button:hover{border-color:#222}.choice-list span{display:block;color:#666;margin-top:4px}.timeline{list-style:none;padding:0;margin:0}.timeline li{display:grid;grid-template-columns:58px 1fr;gap:12px;padding:14px 0;border-bottom:1px solid #eee}.timeline time{font-weight:700}.timeline p{margin:.25rem 0;color:#666}.life-score{font-size:1.2rem}.life-score strong{font-size:2rem}.achievement-list li{opacity:.45}.achievement-list li.unlocked{opacity:1}.empty{color:#666}@media(max-width:760px){.life-grid{grid-template-columns:1fr}.life-toolbar{justify-content:stretch}.life-toolbar button{flex:1}#profile{align-items:flex-start}#profile svg{width:76px;flex-basis:76px}.life-card{padding:18px}}
+  </style>
+</head>
+<body>
+  <world-site-header></world-site-header>
+  <main class="life-shell">
+    <div class="life-toolbar" aria-label="人生模拟工具">
+      <button id="new-life" type="button">重新投胎</button>
+      <button id="export-save" type="button">导出 JSON</button>
+      <button id="clear-data" type="button">清除本地数据</button>
+    </div>
+    <section class="life-grid">
+      <div>
+        <article class="life-card"><div id="profile"></div><div id="metrics"></div><ul class="fact-list" id="facts"></ul></article>
+        <article class="life-card" style="margin-top:22px"><p class="eyebrow">Life archive</p><h2>人生记录</h2><ol class="timeline" id="timeline"></ol></article>
+      </div>
+      <div>
+        <article class="life-card" id="event-panel" aria-live="polite"></article>
+        <article class="life-card" style="margin-top:22px"><p class="eyebrow">Previous lives</p><h2>历史人生</h2><ul class="archive-list" id="archives"></ul></article>
+        <article class="life-card" style="margin-top:22px"><p class="eyebrow">Achievements</p><h2>跨人生里程碑</h2><ul class="achievement-list" id="achievements"></ul></article>
+      </div>
+    </section>
+  </main>
+  <footer>© 2026 Bostage Pte. Ltd. · Realm Ruckus™ · WORLD MVP</footer>
+</body>
+</html>
