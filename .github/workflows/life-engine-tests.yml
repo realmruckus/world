@@ -6,6 +6,7 @@ on:
     paths:
       - 'js/life-engine-v3.js'
       - 'js/life-event-engine-v3.js'
+      - 'js/life-romance-engine-v3.js'
       - 'data/life-*.json'
       - 'tests/life-*.test.mjs'
       - '.github/workflows/life-engine-tests.yml'
@@ -13,6 +14,7 @@ on:
     paths:
       - 'js/life-engine-v3.js'
       - 'js/life-event-engine-v3.js'
+      - 'js/life-romance-engine-v3.js'
       - 'data/life-*.json'
       - 'tests/life-*.test.mjs'
       - '.github/workflows/life-engine-tests.yml'
@@ -32,3 +34,5 @@ jobs:
         run: node tests/life-engine-v3.test.mjs
       - name: Test Annual Event Vertical Slice
         run: node tests/life-event-engine-v3.test.mjs
+      - name: Test Romance Stage Vertical Slice
+        run: node tests/life-romance-engine-v3.test.mjs
