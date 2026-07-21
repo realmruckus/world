@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="WORLD M00 现实人生重开探索验证程序开发计划">
+  <title>人生重开探索验证程序开发计划 · WORLD</title>
+  <link rel="stylesheet" href="../styles.css">
+  <script type="module" src="../js/components/site-header.js"></script>
+</head>
+<body>
+  <world-site-header></world-site-header>
+  <main class="page">
+    <p class="eyebrow">M00 · Life Simulation Exploration</p>
+    <h1>现实人生重开探索验证程序开发计划</h1>
+    <p class="lead">本程序不是 WORLD 正式玩法，而是用于验证事件驱动人生模拟的前置实验。它必须独立、单页、单机、无数据库，重点验证核心循环、事件组织、分支反馈、档案记录、多周目驱动力和内容扩充方式。</p>
+
+    <section>
+      <h2>一、验证目标</h2>
+      <ul class="card-list">
+        <li><strong>核心循环</strong><p>出生 → 年龄推进 → 事件选择 → 状态变化 → 关系与经历累积 → 结局 → 成就 → 再开一生。</p></li>
+        <li><strong>事件可玩性</strong><p>验证现实事件是否具有辨识度、选择压力、意外性、长期后果和重复游玩价值。</p></li>
+        <li><strong>内容结构</strong><p>验证 JSON 是否足以表达条件、权重、分支、链式事件、延迟后果、冷却、稀有度与结局。</p></li>
+        <li><strong>档案价值</strong><p>验证人生时间线、人物关系、重大经历、统计摘要、死因和成就是否能形成可分享的个人故事。</p></li>
+        <li><strong>WORLD 复用</strong><p>验证 Event Composer、状态条件、Effect、事件日志、角色档案和多轮历史能否迁移到 WORLD 的怪物与世界事件系统。</p></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>二、产品边界</h2>
+      <div class="grid two">
+        <article><h3>本阶段包含</h3><ul><li>现实世界背景</li><li>单人物完整生命周期</li><li>家庭、教育、工作、关系、财富、健康和社会事件</li><li>多分支事件与长期状态</li><li>多样结局、人生评分、跨周目成就</li><li>JSON 内容、本地存储、JSON 导入导出</li><li>程序生成 SVG 人物和场景示意图</li></ul></article>
+        <article><h3>本阶段不包含</h3><ul><li>账号系统和远程数据库</li><li>在线多人、排行榜和云存档</li><li>真实货币、广告和商业化</li><li>复杂地图或自由移动</li><li>完整社会经济模拟</li><li>生成式 AI 在线调用</li><li>正式 WORLD 怪物、领地和战斗规则</li></ul></article>
+      </div>
+    </section>
+
+    <section>
+      <h2>三、核心游戏循环</h2>
+      <pre>创建角色
+  ↓
+生成出生背景、家庭和初始资质
+  ↓
+按年龄推进 1 年
+  ↓
+筛选可触发事件
+  ↓
+按优先级、权重、冷却和保底抽取事件
+  ↓
+玩家选择分支
+  ↓
+执行即时 Effect + 写入延迟后果 + 更新关系/经历/标签
+  ↓
+记录人生档案并检查链式事件、重大节点和结局
+  ↓
+继续下一年 / 结束人生
+  ↓
+生成结局摘要、评分、成就与历史人生档案
+  ↓
+重新投胎</pre>
+      <p>单次完整人生目标时长为 8–15 分钟。每年原则上只展示一个主要事件，必要时附带一个自动结算的小事件，避免信息密度失控。</p>
+    </section>
+
+    <section>
+      <h2>四、人物状态模型</h2>
+      <div class="grid two">
+        <article><h3>基础身份</h3><p>姓名、性别表达、出生年份、地区、家庭结构、成长环境、教育阶段、职业、婚姻状态、子女、居住状态。</p></article>
+        <article><h3>核心属性</h3><p>健康、心情、智力、魅力、体能、纪律、同理心、压力。统一使用 0–100，并由事件 Effect 调整。</p></article>
+        <article><h3>资源</h3><p>现金、收入、债务、资产、职业等级、教育资格、社会声望、空闲时间。</p></article>
+        <article><h3>关系</h3><p>父母、兄弟姐妹、伴侣、子女、朋友、同事。每段关系保存亲密度、信任、冲突、依赖、状态和共同经历。</p></article>
+        <article><h3>标签与经历</h3><p>性格标签、健康标签、教育标签、职业标签、家庭标签、法律标签、重大人生经历和隐藏倾向。</p></article>
+        <article><h3>长期变量</h3><p>累计幸福、累计压力、事业稳定度、关系稳定度、财务安全度、风险倾向、遗憾和人生转折次数。</p></article>
+      </div>
+    </section>
+
+    <section>
+      <h2>五、事件类型</h2>
+      <p>事件按领域、生命周期、触发方式和叙事功能四个维度分类。单个事件可以同时属于多个标签。</p>
+      <div class="grid two">
+        <article><h3>1. 出生与家庭</h3><p>家庭收入、父母关系、兄弟姐妹、搬家、家庭冲突、家庭支持、照护责任、继承与失去亲人。</p></article>
+        <article><h3>2. 童年成长</h3><p>兴趣启蒙、校园适应、朋友、欺负与被欺负、比赛、意外、家庭期待、性格形成。</p></article>
+        <article><h3>3. 教育</h3><p>升学、选科、考试、奖学金、退学、复读、实习、留学、技能训练和教育债务。</p></article>
+        <article><h3>4. 职业</h3><p>求职、入职、绩效、升职、降职、裁员、转行、创业、职业倦怠、职场关系和退休。</p></article>
+        <article><h3>5. 财富与消费</h3><p>工资、存款、债务、买房、租房、投资、保险、意外开销、诈骗、破产、继承和退休金。</p></article>
+        <article><h3>6. 友谊与社交</h3><p>结识朋友、友情考验、误会、合作、背叛、重逢、社交圈变化和孤独。</p></article>
+        <article><h3>7. 恋爱与婚姻</h3><p>相识、约会、表白、分手、复合、同居、求婚、婚姻冲突、离婚、再婚和伴侣照护。</p></article>
+        <article><h3>8. 生育与家庭责任</h3><p>是否要孩子、育儿压力、教育选择、代际冲突、子女成长、空巢和家庭照护。</p></article>
+        <article><h3>9. 健康与生活方式</h3><p>疾病、检查、治疗、运动、饮食、睡眠、心理压力、慢性病、康复和老年照护。</p></article>
+        <article><h3>10. 法律与风险</h3><p>交通事故、纠纷、违法诱惑、被骗、诉讼、处罚、犯罪记录和社会后果。只做抽象化、非教学性的结果表达。</p></article>
+        <article><h3>11. 公共与时代事件</h3><p>经济衰退、行业变化、公共卫生、技术替代、自然灾害、政策变化和社会潮流。使用虚构年份或抽象现实背景，避免依赖实时新闻。</p></article>
+        <article><h3>12. 机会与奇遇</h3><p>贵人、偶然机会、意外发现、中奖、小概率逆转、突发邀请和稀有人生转折。</p></article>
+        <article><h3>13. 价值观与抉择</h3><p>诚信与利益、家庭与事业、稳定与冒险、个人愿望与责任、宽恕与追责。</p></article>
+        <article><h3>14. 晚年与回顾</h3><p>退休安排、健康衰退、伴侣与朋友离世、代际关系、遗产安排、人生回顾和最后愿望。</p></article>
+      </div>
+    </section>
+
+    <section>
+      <h2>六、事件触发模式</h2>
+      <ul>
+        <li><strong>普通随机事件：</strong>满足年龄和状态后进入权重池。</li>
+        <li><strong>里程碑事件：</strong>入学、成年、毕业、退休等关键年龄或状态必触发。</li>
+        <li><strong>链式事件：</strong>由前置事件写入 flag，后续在指定年龄或条件下继续。</li>
+        <li><strong>延迟后果：</strong>当前选择写入 futureEffects，在若干年后自动结算或触发新事件。</li>
+        <li><strong>关系事件：</strong>由某段关系的亲密度、冲突值和状态触发。</li>
+        <li><strong>资源事件：</strong>由现金、债务、职业等级、住房和教育资格触发。</li>
+        <li><strong>危机事件：</strong>低健康、高压力、破产、失业或关系崩溃时进入保底池。</li>
+        <li><strong>稀有事件：</strong>低基础权重，并可受幸运、声望、经历和成就修正。</li>
+        <li><strong>结局前事件：</strong>接近死亡或满足重大结局条件时触发最后回顾与选择。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>七、事件 JSON 结构</h2>
+      <pre>{
+  "id": "career_first_offer_001",
+  "version": 1,
+  "type": "career",
+  "tags": ["adult", "job", "choice"],
+  "rarity": "common",
+  "weight": 100,
+  "cooldownYears": 8,
+  "oncePerLife": true,
+  "conditions": {
+    "age": { "min": 18, "max": 30 },
+    "requiredTags": ["education_completed"],
+    "forbiddenTags": ["employed"],
+    "statMin": { "health": 20 },
+    "resourceMin": {},
+    "relationship": null
+  },
+  "title": "第一份正式工作",
+  "description": "两家公司同时向你发来录用通知。",
+  "visual": { "scene": "office_offer", "variant": 1 },
+  "choices": [
+    {
+      "id": "stable_company",
+      "label": "选择稳定的大公司",
+      "effects": [
+        { "op": "add", "path": "money", "value": 3000 },
+        { "op": "set", "path": "career.id", "value": "office" },
+        { "op": "addTag", "value": "employed" }
+      ],
+      "followUps": [
+        { "eventId": "career_corporate_path_001", "afterYears": 3, "chance": 0.6 }
+      ],
+      "record": "你进入一家稳定的大公司。"
+    }
+  ]
+}</pre>
+      <p>事件模板只表达内容和规则数据。筛选、随机、Effect 执行、日志和存档由 Engine 负责，页面不得直接写死结算逻辑。</p>
+    </section>
+
+    <section>
+      <h2>八、分支与后果层级</h2>
+      <div class="grid two">
+        <article><h3>即时反馈</h3><p>属性、金钱、关系和标签立即变化，并在选择后明确显示。</p></article>
+        <article><h3>年度后果</h3><p>下一年或若干年后结算收入、债务、健康和关系变化。</p></article>
+        <article><h3>链式后果</h3><p>开启专属事件线，如创业、婚姻、疾病康复、犯罪记录或家庭照护。</p></article>
+        <article><h3>结构性后果</h3><p>改变后续事件池、可选职业、关系对象、收入上限、健康风险和结局资格。</p></article>
+        <article><h3>叙事回收</h3><p>早期选择应在中晚年以回忆、关系反应、遗憾、荣誉或结局文本回收。</p></article>
+        <article><h3>隐藏检定</h3><p>部分选择基于属性、标签和随机种子判定不同结果，但必须通过结果说明让玩家理解大致原因。</p></article>
+      </div>
+    </section>
+
+    <section>
+      <h2>九、结局体系</h2>
+      <p>结局由“生命结束原因 + 人生主结局 + 次级标签 + 统计摘要”组成，不只输出一个固定标题。</p>
+      <h3>生命结束原因</h3>
+      <ul><li>自然寿终</li><li>疾病</li><li>意外</li><li>公共灾害</li><li>高风险行为的抽象结果</li><li>特殊剧情结局</li></ul>
+      <h3>人生主结局类别</h3>
+      <div class="grid two">
+        <article><h3>平凡而完整</h3><p>没有极端成就，但家庭、健康和生活相对稳定。</p></article>
+        <article><h3>事业巅峰</h3><p>职业等级、声望、收入与重大职业经历达到高位。</p></article>
+        <article><h3>创业传奇</h3><p>创业链完成，并在财富、影响力或持续经营方面达标。</p></article>
+        <article><h3>财富自由</h3><p>净资产与被动收入足以覆盖晚年生活，债务风险低。</p></article>
+        <article><h3>桃李满门</h3><p>教育、指导、子女或后辈关系形成强烈正向影响。</p></article>
+        <article><h3>家庭支柱</h3><p>承担长期照护与责任，家庭关系总体稳固。</p></article>
+        <article><h3>挚爱相伴</h3><p>长期伴侣关系稳定，并共同经历多个关键事件。</p></article>
+        <article><h3>自由灵魂</h3><p>未以传统事业或家庭为主，但探索、兴趣和自主性极高。</p></article>
+        <article><h3>学术与创造</h3><p>教育、研究、艺术、写作或技术创造经历达到高位。</p></article>
+        <article><h3>公共贡献</h3><p>社会服务、公益、医疗、教育或公共职业影响显著。</p></article>
+        <article><h3>大起大落</h3><p>经历多次财富、事业、关系或身份剧烈反转。</p></article>
+        <article><h3>孤独晚年</h3><p>关系网络严重萎缩，亲密度和社会支持不足。</p></article>
+        <article><h3>债务人生</h3><p>长期债务和财务危机主导人生，且未能完成恢复链。</p></article>
+        <article><h3>未竟之路</h3><p>重要目标或链式事件未完成，遗憾值较高。</p></article>
+        <article><h3>重新出发</h3><p>中晚年完成重大转行、康复、再婚或财务重建。</p></article>
+        <article><h3>稀有隐藏结局</h3><p>由特定事件组合、极端属性或跨周目成就解锁。</p></article>
+      </div>
+      <h3>次级结局标签</h3>
+      <p>健康长寿、富有、负债、受人尊敬、家庭和睦、子女疏远、朋友众多、孤独、冒险家、守序者、终身学习、连续创业、频繁转行、晚年重生等。主结局和次级标签共同构成人生摘要。</p>
+    </section>
+
+    <section>
+      <h2>十、人生评分</h2>
+      <p>总分不作为唯一胜负条件，只用于比较不同人生。建议显示六项分数和一项综合评价：</p>
+      <ul><li>健康与寿命</li><li>幸福与心理稳定</li><li>关系与家庭</li><li>事业与创造</li><li>财富与安全</li><li>经历丰富度</li><li>综合人生分：加权结果，保留负面经历带来的故事价值，不简单等同于成功。</li></ul>
+    </section>
+
+    <section>
+      <h2>十一、跨周目成就</h2>
+      <div class="grid two">
+        <article><h3>基础成就</h3><p>完成第一生、活到 80 岁、第一次结婚、第一次买房、第一次退休。</p></article>
+        <article><h3>职业成就</h3><p>体验 10 种职业、成为行业顶尖、完成一次成功转行、创业成功。</p></article>
+        <article><h3>关系成就</h3><p>维持长期友谊、三代同堂、终身伴侣、与家庭和解。</p></article>
+        <article><h3>挑战成就</h3><p>从贫困背景实现财务安全、从重大疾病康复、破产后重建、低属性开局完成高评价。</p></article>
+        <article><h3>收集成就</h3><p>触发全部事件类型、发现稀有事件、获得不同主结局、解锁隐藏事件链。</p></article>
+        <article><h3>多人生元成就</h3><p>累计完成 5、10、25 次人生；连续三生走完全不同路线；获得全部主结局类别。</p></article>
+      </div>
+      <p>成就只解锁事件提示、统计与轻量初始选项，不在验证阶段引入强数值继承，避免多周目变成单向碾压。</p>
+    </section>
+
+    <section>
+      <h2>十二、档案与本地数据</h2>
+      <ul>
+        <li><strong>当前人生：</strong>完整状态、随机种子、年龄、事件队列、关系、标签、经历、日志和版本。</li>
+        <li><strong>历史人生：</strong>角色摘要、出生与死亡、主结局、次级标签、总分、重大节点和关键统计。</li>
+        <li><strong>全局档案：</strong>完成次数、事件发现率、结局收藏、成就、最佳纪录和累计统计。</li>
+        <li><strong>设置：</strong>文字速度、减少动画、调试信息和数据版本。</li>
+        <li><strong>导出：</strong>单个 JSON 文件包含 schemaVersion、当前人生、历史人生、成就和设置。</li>
+        <li><strong>迁移：</strong>每次结构变化必须提供本地存档迁移函数，不允许静默丢弃旧数据。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>十三、程序化 SVG 视觉</h2>
+      <ul>
+        <li>人物头像由脸型、发型、发色、肤色、服饰、年龄线条和表情组合生成。</li>
+        <li>事件场景使用办公室、学校、住宅、医院、法庭、街道、机场等抽象 SVG 图标与背景。</li>
+        <li>视觉只负责辅助辨识事件类型，不承担核心信息，所有状态必须有文字说明。</li>
+        <li>SVG 参数由人物状态和事件 visual 字段驱动，不保存独立图片文件。</li>
+        <li>禁止依赖第三方图片、远程字体或在线图像服务。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>十四、内容规模</h2>
+      <div class="grid two">
+        <article><h3>Playable Prototype</h3><p>40–60 个事件模板、8 个主结局、12 个成就、4 类职业、基础家庭和关系。</p></article>
+        <article><h3>探索验证版</h3><p>120–180 个事件模板、16 个主结局、30–40 个成就、12 类职业、20 条短事件链。</p></article>
+        <article><h3>重复度目标</h3><p>连续三次人生中，相同主要事件不超过 35%；每次人生至少出现 2 个不同于上一轮的重大节点。</p></article>
+        <article><h3>事件分布</h3><p>普通 65%、条件事件 20%、链式事件 10%、稀有事件 5%。实际权重需通过批量 Simulation 校准。</p></article>
+      </div>
+    </section>
+
+    <section>
+      <h2>十五、开发阶段</h2>
+      <ol>
+        <li><strong>P0 数据与规则冻结：</strong>确定状态字段、Effect 操作、事件 JSON Schema、结局计算和存档版本。</li>
+        <li><strong>P1 Engine 垂直切片：</strong>角色生成、年龄推进、事件筛选、权重抽取、选择结算、日志和基础死亡。</li>
+        <li><strong>P2 页面交互：</strong>创建角色、事件选择、属性反馈、时间线、历史人生、成就和 SVG。</li>
+        <li><strong>P3 内容扩充：</strong>完成 40–60 个首轮事件，并覆盖所有生命周期和主要事件类型。</li>
+        <li><strong>P4 链式事件与结局：</strong>加入延迟后果、关系链、职业链、健康链和至少 8 个主结局。</li>
+        <li><strong>P5 本地持久化：</strong>自动存档、恢复、历史档案、跨周目成就、导入导出和迁移。</li>
+        <li><strong>P6 调试与 Simulation：</strong>固定种子重放、批量人生模拟、事件覆盖率、死亡年龄、结局分布和重复度统计。</li>
+        <li><strong>P7 移动端审核：</strong>在 iPhone 竖屏完成完整人生，检查按钮、文字长度、滚动、存档和部署链接。</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>十六、自动测试</h2>
+      <ul>
+        <li>相同种子、相同输入得到相同事件和结果。</li>
+        <li>年龄、标签、属性、资源和关系条件筛选正确。</li>
+        <li>冷却、oncePerLife、链式事件和延迟后果不重复或丢失。</li>
+        <li>Effect 操作只能修改允许字段，非法路径必须拒绝。</li>
+        <li>所有数值属性保持合法范围，金钱和债务规则一致。</li>
+        <li>死亡后不能继续推进，结局只能结算一次。</li>
+        <li>导出后再导入得到等价状态。</li>
+        <li>旧 schemaVersion 可迁移到当前版本。</li>
+        <li>批量模拟不存在无事件可选、永不结束或明显单一结局。</li>
+        <li>全部事件引用的 ID、职业、标签、场景和后续事件均有效。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>十七、好玩性验证指标</h2>
+      <ul>
+        <li>第一次游玩能否在 30 秒内理解“推进年龄—做选择—看后果”。</li>
+        <li>选择是否至少有两项看起来合理，而不是明显正确答案。</li>
+        <li>关键选择是否在 3–10 年内产生可识别回报或代价。</li>
+        <li>一生中是否至少形成 3 个可复述的故事节点。</li>
+        <li>结局是否能解释玩家为什么得到该评价。</li>
+        <li>结束后是否有明确动力再开一生：未见事件、未获结局、成就或尝试相反路线。</li>
+        <li>三轮游玩后事件重复和文本疲劳是否可接受。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>十八、完成标准</h2>
+      <ul>
+        <li>正式页面部署到 <code>https://world.realmruckus.com/life-sim.html</code> 并可在移动端访问。</li>
+        <li>Engine、事件 JSON、页面、SVG 生成和存档模块职责分离。</li>
+        <li>至少 40 个事件、8 个主结局、12 个成就可运行。</li>
+        <li>完整人生、死亡、结局、历史档案和重新投胎流程无阻塞。</li>
+        <li>自动测试、语法检查、JSON 校验和固定种子重放通过。</li>
+        <li>完成至少 1000 次批量人生模拟并记录事件覆盖率、平均寿命、结局分布和异常。</li>
+        <li>在 Linear RR-95 记录 Commit SHA、文件、测试、部署、移动端验证和下一审核闸门。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>十九、与 WORLD 的复用映射</h2>
+      <div class="grid two">
+        <article><h3>人物状态</h3><p>迁移为怪物档案、属性、经历、关系、伤势、装备和长期标签。</p></article>
+        <article><h3>事件条件</h3><p>迁移为地点、行动、属性、资源、关系、世界状态和时间条件。</p></article>
+        <article><h3>Effect</h3><p>迁移为统一结构化 Effect，由 WORLD Engine 执行。</p></article>
+        <article><h3>链式事件</h3><p>迁移为狩猎、探索、招募、领地和世界异步事件链。</p></article>
+        <article><h3>人生档案</h3><p>迁移为怪物持续车卡、世界经历、驻守史和可重放事件日志。</p></article>
+        <article><h3>Simulation</h3><p>迁移为 Event Composer 频率、重复度、经济和成长模型的批量验证。</p></article>
+      </div>
+    </section>
+
+    <section>
+      <h2>项目管理</h2>
+      <p>本页面保存 RR-95 的长期开发范围、结构和验收标准。当前进度、阻塞、审核、负责人和下一步任务以 Linear 的 RR-95 与 WORLD MVP Project Status 为准。</p>
+    </section>
+  </main>
+  <footer>© 2026 Bostage Pte. Ltd. · Realm Ruckus™ · WORLD MVP</footer>
+</body>
+</html>
