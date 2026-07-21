@@ -1,0 +1,34 @@
+name: Life Engine Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'js/life-engine-v3.js'
+      - 'js/life-event-engine-v3.js'
+      - 'data/life-*.json'
+      - 'tests/life-*.test.mjs'
+      - '.github/workflows/life-engine-tests.yml'
+  pull_request:
+    paths:
+      - 'js/life-engine-v3.js'
+      - 'js/life-event-engine-v3.js'
+      - 'data/life-*.json'
+      - 'tests/life-*.test.mjs'
+      - '.github/workflows/life-engine-tests.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Test Life Engine Core
+        run: node tests/life-engine-v3.test.mjs
+      - name: Test Annual Event Vertical Slice
+        run: node tests/life-event-engine-v3.test.mjs
