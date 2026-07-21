@@ -1,7 +1,7 @@
 {
   "$schema":"https://json-schema.org/draft/2020-12/schema",
   "$id":"https://world.realmruckus.com/schemas/life-save.schema.json",
-  "title":"WORLD Life Simulation Local Save v3",
+  "title":"WORLD Life Simulation Local Save v3.1",
   "type":"object",
   "additionalProperties":false,
   "required":["schemaVersion","appVersion","savedAt","currentLife","archives","achievements","settings"],
@@ -21,12 +21,12 @@
       "properties":{
         "id":{"type":"string"},"seed":{"type":"integer"},"rngCursor":{"type":"integer","minimum":0},"createdAt":{"type":"string","format":"date-time"},"alive":{"type":"boolean"},
         "clock":{"type":"object","additionalProperties":false,"required":["totalWeeks","stage","stageStartedAtWeeks"],"properties":{"totalWeeks":{"type":"integer","minimum":0,"maximum":6760},"stage":{"enum":["life","romance"]},"stageStartedAtWeeks":{"type":"integer","minimum":0,"maximum":6760}}},
-        "identity":{"type":"object","additionalProperties":true,"required":["name","birthYear","region"],"properties":{"name":{"type":"string"},"birthYear":{"type":"integer"},"region":{"type":"string"}}},
-        "body":{"$ref":"#/$defs/numberMap"},
-        "mind":{"$ref":"#/$defs/numberMap"},
-        "career":{"type":"object","additionalProperties":true},
-        "finance":{"type":"object","additionalProperties":true},
-        "health":{"type":"object","additionalProperties":true},
+        "identity":{"type":"object","additionalProperties":true,"required":["name","birthYear","region","childrenCount"],"properties":{"name":{"type":"string"},"birthYear":{"type":"integer"},"region":{"type":"string"},"childrenCount":{"type":"integer","minimum":0}}},
+        "body":{"type":"object","additionalProperties":{"type":"number"},"required":["fitness"],"properties":{"fitness":{"$ref":"#/$defs/score"}}},
+        "mind":{"type":"object","additionalProperties":{"type":"number"},"required":["smarts","empathy","stress"],"properties":{"smarts":{"$ref":"#/$defs/score"},"empathy":{"$ref":"#/$defs/score"},"stress":{"$ref":"#/$defs/score"}}},
+        "career":{"type":"object","additionalProperties":true,"required":["level","freeTime"],"properties":{"level":{"type":"number","minimum":0},"freeTime":{"$ref":"#/$defs/score"}}},
+        "finance":{"type":"object","additionalProperties":true,"required":["assets","debt","businessAssets","reputation"],"properties":{"assets":{"type":"number","minimum":0},"debt":{"type":"number","minimum":0},"businessAssets":{"type":"number","minimum":0},"reputation":{"$ref":"#/$defs/score"}}},
+        "health":{"type":"object","additionalProperties":true,"required":["health"],"properties":{"health":{"$ref":"#/$defs/score"}}},
         "inventory":{"type":"array","items":{"type":"object"}},
         "location":{"type":"object","additionalProperties":true},
         "relationships":{"type":"array","items":{"$ref":"#/$defs/relationship"}},
@@ -60,10 +60,10 @@
         "scheduled":{"type":"array","items":{"$ref":"#/$defs/scheduled"}}
       }
     },
-    "experience":{"type":"object","required":["id","type","atTotalWeeks","title"],"properties":{"id":{"type":"string"},"type":{"type":"string"},"atTotalWeeks":{"type":"integer","minimum":0,"maximum":6760},"title":{"type":"string"},"tags":{"type":"array","items":{"type":"string"},"uniqueItems":true},"data":{"type":"object"}}},
-    "timelineEntry":{"type":"object","required":["id","atTotalWeeks","stage","timeScale","kind","title","summary"],"properties":{"id":{"type":"string"},"atTotalWeeks":{"type":"integer","minimum":0,"maximum":6760},"stage":{"enum":["life","romance"]},"timeScale":{"enum":["year","week"]},"kind":{"type":"string"},"eventId":{"type":"string"},"choiceId":{"type":"string"},"title":{"type":"string"},"summary":{"type":"string"},"delta":{"type":"object"}}},
-    "scheduled":{"type":"object","required":["id","dueAtTotalWeeks","kind","payload"],"properties":{"id":{"type":"string"},"dueAtTotalWeeks":{"type":"integer","minimum":0,"maximum":6760},"kind":{"enum":["event","commands"]},"payload":{"type":"object"}}},
-    "archive":{"type":"object","required":["lifeId","name","ageYears","endingId","score","endedAt","summaryTags"],"properties":{"lifeId":{"type":"string"},"name":{"type":"string"},"ageYears":{"type":"integer"},"endingId":{"type":"string"},"deathCauseId":{"type":"string"},"score":{"type":"integer","minimum":0,"maximum":100},"endedAt":{"type":"string","format":"date-time"},"summaryTags":{"type":"array","items":{"type":"string"},"uniqueItems":true},"snapshot":{"$ref":"#/$defs/life"}}},
+    "experience":{"type":"object","additionalProperties":false,"required":["id","type","atTotalWeeks","title"],"properties":{"id":{"type":"string"},"type":{"type":"string"},"atTotalWeeks":{"type":"integer","minimum":0,"maximum":6760},"title":{"type":"string"},"tags":{"type":"array","items":{"type":"string"},"uniqueItems":true},"data":{"type":"object"}}},
+    "timelineEntry":{"type":"object","additionalProperties":false,"required":["id","atTotalWeeks","stage","timeScale","kind","title","summary"],"properties":{"id":{"type":"string"},"atTotalWeeks":{"type":"integer","minimum":0,"maximum":6760},"stage":{"enum":["life","romance"]},"timeScale":{"enum":["year","week"]},"kind":{"type":"string"},"eventId":{"type":"string"},"choiceId":{"type":"string"},"title":{"type":"string"},"summary":{"type":"string"},"delta":{"type":"object"}}},
+    "scheduled":{"type":"object","additionalProperties":false,"required":["id","dueAtTotalWeeks","kind","payload"],"properties":{"id":{"type":"string"},"dueAtTotalWeeks":{"type":"integer","minimum":0,"maximum":6760},"kind":{"enum":["event","commands"]},"payload":{"type":"object"}}},
+    "archive":{"type":"object","additionalProperties":false,"required":["lifeId","name","ageYears","endingId","score","endedAt","summaryTags"],"properties":{"lifeId":{"type":"string"},"name":{"type":"string"},"ageYears":{"type":"integer"},"endingId":{"type":"string"},"deathCauseId":{"type":"string"},"score":{"type":"integer","minimum":0,"maximum":100},"endedAt":{"type":"string","format":"date-time"},"summaryTags":{"type":"array","items":{"type":"string"},"uniqueItems":true},"snapshot":{"$ref":"#/$defs/life"}}},
     "score":{"type":"number","minimum":0,"maximum":100},
     "numberMap":{"type":"object","additionalProperties":{"type":"number"}}
   }
