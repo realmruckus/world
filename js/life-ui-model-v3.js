@@ -1,3 +1,29 @@
+const educationNames = {
+  none:'尚未入学', preschool:'幼儿阶段', primary_school:'小学阶段', middle_school:'中学阶段', high_school:'高中阶段',
+  vocational_school:'职业教育', college:'大学阶段', university:'大学阶段', graduate_school:'研究生阶段', doctorate:'博士阶段', graduated:'已完成学业',
+};
+
+const careerNames = {
+  none:'尚未工作', student:'在校学习', starter_job:'职场起步', junior_job:'初入职场', mid_career:'事业发展期', senior_job:'资深从业者',
+  manager:'管理岗位', executive:'企业高管', entrepreneur:'自主创业', freelancer:'自由职业', unemployed:'待业中', retired:'退休生活',
+};
+
+const eventTypeNames = {
+  values:'人生选择', wealth:'财富规划', education:'学习成长', career:'职业发展', health:'健康生活', family:'家庭关系',
+  social:'人际关系', romance:'感情发展', crisis:'突发状况', opportunity:'人生机会', lifestyle:'生活方式',
+};
+
+function readableId(value, names, fallback) {
+  if (!value || value === 'none') return fallback;
+  if (names[value]) return names[value];
+  return String(value).replaceAll('_', ' ');
+}
+
+function level(value, bands) {
+  const score = Math.max(0, Math.min(100, Number(value || 0)));
+  return bands.find(({ max }) => score <= max)?.label || bands.at(-1).label;
+}
+
 export function derivedClock(life) {
   const totalWeeks = Number(life?.clock?.totalWeeks || 0);
   return { ageYears: Math.floor(totalWeeks / 52), weekOfYear: totalWeeks % 52 };
@@ -21,27 +47,27 @@ export function profileView(life) {
   return {
     name: life.identity.name,
     ageLabel: life.alive === false ? '人生档案已封存' : `${clock.ageYears} 岁 · 第 ${clock.weekOfYear + 1} 周`,
-    stageLabel: life.clock.stage === 'romance' ? '恋爱周阶段' : '年度人生阶段',
+    stageLabel: life.clock.stage === 'romance' ? '恋爱阶段' : '人生阶段',
     location: life.location?.name || life.identity.region,
-    education: life.career.educationId || 'none',
-    career: life.career.id || 'none',
+    education: readableId(life.career.educationId, educationNames, '尚未入学'),
+    career: readableId(life.career.id, careerNames, '尚未工作'),
     avatar: avatarSvg(life),
   };
 }
 
 export function metricRows(life) {
   return [
-    ['健康', life.health.health],
-    ['快乐', life.mind.happiness],
-    ['智慧', life.mind.smarts],
-    ['自律', life.mind.discipline],
-    ['压力', life.mind.stress],
-  ].map(([label, value]) => ({ label, value: Math.round(Number(value || 0)) }));
+    { label:'身体', status:level(life.health.health, [{max:24,label:'身体很差'},{max:49,label:'需要休养'},{max:74,label:'状态良好'},{max:100,label:'精力充沛'}]) },
+    { label:'心情', status:level(life.mind.happiness, [{max:24,label:'情绪低落'},{max:49,label:'心情一般'},{max:74,label:'心情不错'},{max:100,label:'心情愉快'}]) },
+    { label:'思维', status:level(life.mind.smarts, [{max:24,label:'仍在摸索'},{max:49,label:'思路普通'},{max:74,label:'思路清晰'},{max:100,label:'思维敏锐'}]) },
+    { label:'习惯', status:level(life.mind.discipline, [{max:24,label:'比较随性'},{max:59,label:'自律一般'},{max:79,label:'做事有序'},{max:100,label:'高度自律'}]) },
+    { label:'压力', status:level(life.mind.stress, [{max:24,label:'压力较低'},{max:49,label:'略有压力'},{max:74,label:'压力明显'},{max:100,label:'不堪重负'}]) },
+  ];
 }
 
 export function timelineRows(life, limit = 30) {
   return [...(life.history.timeline || [])].reverse().slice(0, limit).map((entry) => ({
-    time: entry.timeScale === 'week' ? `${Math.floor(entry.atTotalWeeks / 52)}岁 W${entry.atTotalWeeks % 52 + 1}` : `${Math.floor(entry.atTotalWeeks / 52)}岁`,
+    time: entry.timeScale === 'week' ? `${Math.floor(entry.atTotalWeeks / 52)}岁 第${entry.atTotalWeeks % 52 + 1}周` : `${Math.floor(entry.atTotalWeeks / 52)}岁`,
     title: entry.title,
     summary: entry.summary,
     kind: entry.kind,
@@ -58,7 +84,7 @@ export function eventView(life) {
   if (!event) return null;
   return {
     id: event.id,
-    type: event.type,
+    type: eventTypeNames[event.type] || readableId(event.type, eventTypeNames, '人生事件'),
     title: event.narration?.title || event.id,
     description: event.narration?.description || '',
     caption: event.scene?.caption || '',
