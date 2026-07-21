@@ -1,0 +1,35 @@
+[
+  {
+    "id":"romance_hard_limit_cohabiting","version":3,"type":"romance","stage":"romance","timeScale":"week","relationshipResolution":true,"priority":925,"weight":1,
+    "conditions":{"weekInStage":{"min":52},"relationship":{"role":"partner_candidate","status":"cohabiting"}},
+    "scene":{"id":"cohabiting_crossroad","caption":"共同生活已经持续很久，未来方向需要明确。"},
+    "narration":{"title":"共同生活的答案","description":"你们需要决定进一步承诺，还是结束不再适合的关系。"},
+    "aiTags":["romance","resolution","hard_limit"],
+    "choices":[
+      {"id":"engage","label":"讨论订婚","result":"你们决定为婚姻作准备。","commands":[{"op":"RequestRelationshipTransition","relationshipId":"partner-1","intent":"get_engaged","targetStatus":"engaged"}]},
+      {"id":"break_up","label":"结束共同生活","result":"你们承认彼此的方向已经不同。","commands":[{"op":"EndRelationship","relationshipId":"partner-1","targetStatus":"broken_up"}]}
+    ]
+  },
+  {
+    "id":"romance_hard_limit_engaged","version":3,"type":"romance","stage":"romance","timeScale":"week","relationshipResolution":true,"priority":920,"weight":1,
+    "conditions":{"weekInStage":{"min":52},"relationship":{"role":"partner_candidate","status":"engaged"}},
+    "scene":{"id":"wedding_decision","caption":"订婚后的现实问题已经不能继续搁置。"},
+    "narration":{"title":"婚姻决定","description":"你们需要正式结婚，或停止一段无法兑现的承诺。"},
+    "aiTags":["romance","resolution","hard_limit"],
+    "choices":[
+      {"id":"marry","label":"正式结婚","result":"你们共同进入人生的新阶段。","commands":[{"op":"RequestRelationshipTransition","relationshipId":"partner-1","intent":"get_married","targetStatus":"married"}]},
+      {"id":"break_up","label":"解除婚约","result":"你们结束了这段承诺。","commands":[{"op":"EndRelationship","relationshipId":"partner-1","targetStatus":"broken_up"}]}
+    ]
+  },
+  {
+    "id":"romance_hard_limit_paused","version":3,"type":"romance","stage":"romance","timeScale":"week","relationshipResolution":true,"priority":915,"weight":1,
+    "conditions":{"weekInStage":{"min":52},"relationship":{"role":"partner_candidate","status":"paused"}},
+    "scene":{"id":"quiet_phone","caption":"暂停状态持续太久，你们需要给彼此最终答案。"},
+    "narration":{"title":"暂停后的答案","description":"重新开始需要双方投入，否则应当结束联系。"},
+    "aiTags":["romance","resolution","hard_limit"],
+    "choices":[
+      {"id":"resume","label":"重新开始交往","result":"你们决定重新建立联系。","commands":[{"op":"RequestRelationshipTransition","relationshipId":"partner-1","intent":"resume_dating","targetStatus":"dating"}]},
+      {"id":"end_contact","label":"结束联系","result":"你们接受这段关系已经结束。","commands":[{"op":"EndRelationship","relationshipId":"partner-1","targetStatus":"no_contact"}]}
+    ]
+  }
+]
