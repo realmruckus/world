@@ -21,17 +21,17 @@ const interruptEvents = JSON.parse(fs.readFileSync(new URL('../data/life-events-
 const tests = [];
 const test = (name, fn) => tests.push({ name, fn });
 
-function createRomanceLife(status = 'potential', dimensions = {}) {
+function createRomanceLife(status = 'potential', dimensions = {}, relationshipId = 'partner-1') {
   const base = createLifeStateV3({ id: 'romance-life', seed: 31, name: '测试者' });
   const withRelationship = applyCommandsAtomic(base, [{
-    op: 'CreateRelationship', relationshipId: 'partner-1', role: 'partner_candidate', name: '林遥', targetStatus: status,
+    op: 'CreateRelationship', relationshipId, role: 'partner_candidate', name: '林遥', targetStatus: status,
     dimensions: {
       attraction: 60, love: 50, trust: 50, conflict: 10,
       dependence: 20, respect: 50, passion: 50, commitment: 35,
       ...dimensions,
     },
   }], { advanceTime: false });
-  return enterRomanceStage(withRelationship, 'partner-1');
+  return enterRomanceStage(withRelationship, relationshipId);
 }
 
 test('entering romance stage preserves time and records active relationship', () => {
@@ -48,6 +48,14 @@ test('normal romance choice advances exactly one week', () => {
   const resolved = resolveRomanceChoice(selected, 'open', relationshipRules);
   assert.equal(resolved.clock.totalWeeks, 1);
   assert.equal(resolved.clock.stage, 'romance');
+  assert.equal(resolved.relationships[0].status, 'dating');
+});
+
+test('romance commands bind to the active relationship instead of a fixed data id', () => {
+  const life = createRomanceLife('potential', {}, 'relationship-custom-42');
+  const selected = selectRomanceTurn(life, romanceEvents, [], relationshipRules);
+  assert.equal(selected.pendingEvent.choices[0].commands[0].relationshipId, 'relationship-custom-42');
+  const resolved = resolveRomanceChoice(selected, 'open', relationshipRules);
   assert.equal(resolved.relationships[0].status, 'dating');
 });
 
