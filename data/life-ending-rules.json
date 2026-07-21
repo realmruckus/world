@@ -1,13 +1,35 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
+  "clock": {
+    "canonical": "totalWeeks",
+    "ageYearsFormula": "floor(totalWeeks / 52)"
+  },
   "selection": {
     "mode": "highest_priority_then_score_then_id",
     "deathCauseResolvedFirst": true,
     "primaryEndingCount": 1,
     "secondaryTagLimit": 6
   },
+  "metricDefinitions": {
+    "businessSuccess": "normalized entrepreneurship experience, business assets, and sustained profit",
+    "peopleHelped": "count of unique experiences tagged helped_person",
+    "familyStability": "active family relationship support minus conflict and rupture penalties",
+    "partnerCloseness": "closeness of current or last long-term partner",
+    "relationshipYears": "accumulated long-term partner weeks divided by 52",
+    "lifeVariety": "normalized unique coverage of experience types, careers, regions, and major activities",
+    "lateLifeGrowth": "normalized positive change after age 50",
+    "turningPoints": "count of unique experiences tagged turning_point",
+    "unresolvedGoals": "active goals without matching completed goals",
+    "loneliness": "100 minus effective close-relationship support",
+    "careerChanges": "count of experiences tagged career_change",
+    "educationEvents": "count of experiences tagged education_growth",
+    "riskTurns": "count of experiences tagged risk_choice",
+    "recoveryTurns": "count of experiences tagged recovery",
+    "peakWealth": "normalized historical maximum net assets",
+    "largestLoss": "normalized largest peak-to-trough net-asset loss"
+  },
   "deathCauses": [
-    { "id": "old_age", "priority": 100, "conditions": { "ageMin": 80 } },
+    { "id": "old_age", "priority": 100, "conditions": { "ageYearsMin": 80 } },
     { "id": "health_failure", "priority": 200, "conditions": { "healthMax": 0 } },
     { "id": "illness", "priority": 150, "conditions": { "requiredTags": ["serious_illness"] } },
     { "id": "accident", "priority": 300, "conditions": { "requiredFlags": ["fatal_accident"] } },
@@ -27,12 +49,12 @@
     { "id": "rise_and_fall", "priority": 650, "score": { "peakWealth": 25, "largestLoss": 30, "turningPoints": 15 }, "conditions": { "largestLossMin": 70, "peakWealthMin": 70 } },
     { "id": "debt_life", "priority": 640, "score": { "debt": 45, "financialStress": 30, "bankruptcies": 20 }, "conditions": { "debtMin": 100000 } },
     { "id": "lonely_later_life", "priority": 630, "score": { "loneliness": 40, "relationshipLosses": 20, "familyCloseness": -20 }, "conditions": { "lonelinessMin": 80 } },
-    { "id": "unfinished_path", "priority": 620, "score": { "ageUnder": 35, "unresolvedGoals": 35, "turningPoints": 10 }, "conditions": { "ageMax": 45 } },
-    { "id": "ordinary_complete", "priority": 100, "score": { "happiness": 25, "health": 15, "familyStability": 15, "financialSecurity": 15, "age": 10 }, "conditions": {} },
+    { "id": "unfinished_path", "priority": 620, "score": { "unresolvedGoals": 35, "turningPoints": 10 }, "conditions": { "ageYearsMax": 45 } },
+    { "id": "ordinary_complete", "priority": 100, "score": { "happiness": 25, "health": 15, "familyStability": 15, "financialSecurity": 15, "ageYears": 10 }, "conditions": {} },
     { "id": "hidden_rare", "priority": 1000, "score": { "hiddenEndingScore": 100 }, "conditions": { "requiredFlags": ["hidden_ending_unlocked"] } }
   ],
   "secondaryTags": [
-    { "id": "healthy_longevity", "conditions": { "ageMin": 85, "healthMin": 60 } },
+    { "id": "healthy_longevity", "conditions": { "ageYearsMin": 85, "healthMin": 60 } },
     { "id": "family_harmony", "conditions": { "familyClosenessMin": 80 } },
     { "id": "many_friends", "conditions": { "friendCountMin": 8, "friendClosenessMin": 70 } },
     { "id": "debt_burden", "conditions": { "debtMin": 1 } },
