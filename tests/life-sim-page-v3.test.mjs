@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const html = fs.readFileSync(new URL('../life-sim.html', import.meta.url), 'utf8');
+const script = fs.readFileSync(new URL('../js/life-sim-v3.js', import.meta.url), 'utf8');
 
 const tests = [];
 const test = (name, fn) => tests.push({ name, fn });
@@ -34,6 +35,15 @@ test('mobile choice controls remain reachable above the browser chrome', () => {
   assert.match(html, /\.choice-list\{[^}]*overflow-y:auto/);
   assert.match(html, /\.choice-list\{[^}]*min-height:0/);
   assert.match(html, /padding:0 2px calc\(20px \+ env\(safe-area-inset-bottom\)\) 0/);
+});
+
+test('profile uses readable conditions and identity labels instead of raw score meters', () => {
+  assert.match(html, /\.life-condition\{/);
+  assert.doesNotMatch(html, /\.life-meter\{/);
+  assert.match(script, /view\.gender/);
+  assert.match(script, /view\.zodiac/);
+  assert.match(script, /view\.birthdayLabel/);
+  assert.doesNotMatch(script, /style="width:\$\{safe\}%"/);
 });
 
 let passed = 0;
