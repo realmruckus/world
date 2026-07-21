@@ -26,7 +26,7 @@ test('mobile controls keep readable contrast and stable touch targets', () => {
   assert.match(html, /--life-muted:\s*#5f6b63/);
   assert.match(html, /min-height:\s*48px/);
   assert.match(html, /@media\(max-width:760px\)/);
-  assert.match(html, /grid-template-rows:minmax\(0,1fr\) minmax\(260px,44dvh\)/);
+  assert.match(html, /grid-template-rows:minmax\(0,1fr\) minmax\(280px,48dvh\)/);
 });
 
 test('mobile choice controls remain reachable above the browser chrome', () => {
