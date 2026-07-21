@@ -1,0 +1,13 @@
+[
+  {
+    "id":"annual_meet_partner","version":3,"type":"romance","stage":"life","timeScale":"year","priority":210,"weight":2,"oncePerLife":true,
+    "conditions":{"age":{"min":18,"max":35}},
+    "scene":{"id":"community_event","caption":"一次普通的社交活动里，有人与你聊得很投机。"},
+    "narration":{"title":"认识新朋友","description":"你们有继续了解彼此的可能，也可以让这次相遇停留在礼貌寒暄。"},
+    "aiTags":["romance","meeting","adult"],
+    "choices":[
+      {"id":"continue","label":"交换联系方式","result":"你们决定在接下来的几周继续了解彼此。","commands":[{"op":"CreateRelationship","relationshipId":"partner-1","role":"partner_candidate","name":"林遥","targetStatus":"potential","dimensions":{"attraction":62,"love":22,"trust":35,"conflict":5,"dependence":8,"respect":45,"passion":38,"commitment":12}},{"op":"EnterStage","stage":"romance"}]},
+      {"id":"polite","label":"礼貌道别","result":"这次相遇成为生活里一个短暂而温和的片段。","commands":[{"op":"AddStat","key":"mind.happiness","amount":2}]}
+    ]
+  }
+]
