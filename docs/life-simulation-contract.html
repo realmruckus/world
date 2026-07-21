@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="WORLD M00 人生模拟状态、Effect、事件、结局和存档契约 v1">
+  <title>人生模拟数据与规则契约 v1 · WORLD</title>
+  <link rel="stylesheet" href="../styles.css">
+  <script type="module" src="../js/components/site-header.js"></script>
+</head>
+<body>
+  <world-site-header></world-site-header>
+  <main class="page">
+    <p class="eyebrow">RR-95 · Contract Freeze v1</p>
+    <h1>人生模拟数据与规则契约 v1</h1>
+    <p class="lead">本页冻结 M00 第一版实现契约。后续 Engine、事件内容、界面、测试与存档迁移必须以本契约和对应 JSON Schema 为准，不再继续沿用早期原型中的扁平字段。</p>
+
+    <section>
+      <h2>一、正式文件</h2>
+      <ul class="card-list">
+        <li><a href="../schemas/life-event.schema.json"><strong>life-event.schema.json</strong></a><p>事件、条件、选择、Effect、延迟后果和链式事件的数据约束。</p></li>
+        <li><a href="../schemas/life-save.schema.json"><strong>life-save.schema.json</strong></a><p>当前人生、历史人生、成就、设置和存档版本的数据约束。</p></li>
+        <li><a href="../data/life-ending-rules.json"><strong>life-ending-rules.json</strong></a><p>死亡原因、主结局、次级标签、优先级和评分权重。</p></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>二、人物状态结构</h2>
+      <pre>LifeState
+├─ id / seed / rngCursor / createdAt
+├─ identity
+│  ├─ name / genderExpression / birthYear / region
+│  ├─ familyBackground / educationId / careerId
+│  ├─ maritalStatus / childrenCount / housingStatus
+├─ age / alive
+├─ stats
+│  ├─ health / happiness / smarts / charm
+│  ├─ fitness / discipline / empathy / stress
+├─ resources
+│  ├─ cash / income / debt / assets
+│  ├─ careerLevel / reputation / freeTime
+│  └─ financialSecurity
+├─ relationships[]
+├─ tags[] / flags{}
+├─ experiences[] / timeline[]
+├─ cooldowns{}
+├─ scheduled[]
+├─ pendingEvent
+└─ ending</pre>
+      <p>所有核心属性使用 0–100。现金、收入、债务和资产使用非负整数；净资产由资产与债务派生，不作为第二份正式字段存储。关系必须使用独立对象，不再使用 <code>family/friends/partner</code> 三个汇总数字代替真实人物。</p>
+    </section>
+
+    <section>
+      <h2>三、Effect 操作表</h2>
+      <div class="grid two">
+        <article><h3>数值</h3><p><code>add_stat</code>、<code>set_stat</code>、<code>add_resource</code>、<code>set_resource</code>。属性结算后统一截断到合法范围。</p></article>
+        <article><h3>标签与状态</h3><p><code>add_tag</code>、<code>remove_tag</code>、<code>set_flag</code>、<code>clear_flag</code>。标签用于可查询分类，Flag 用于唯一链路和明确状态。</p></article>
+        <article><h3>身份与经历</h3><p><code>set_identity</code>、<code>set_career</code>、<code>set_education</code>、<code>append_experience</code>。</p></article>
+        <article><h3>关系</h3><p><code>create_relationship</code>、<code>modify_relationship</code>、<code>end_relationship</code>。所有修改必须指向 relationshipId 或明确角色选择规则。</p></article>
+        <article><h3>未来事件</h3><p><code>schedule_event</code> 将事件或 Effect 写入 scheduled 队列，使用 dueAge 结算，不依赖真实时间。</p></article>
+        <article><h3>禁止做法</h3><p>禁止在事件 JSON 中嵌入 JavaScript、函数名、任意表达式或直接修改未知路径；所有行为必须由白名单操作解释执行。</p></article>
+      </div>
+    </section>
+
+    <section>
+      <h2>四、事件选择顺序</h2>
+      <ol>
+        <li>结算当前年龄到期的 scheduled 项。</li>
+        <li>检查强制链式事件和里程碑事件。</li>
+        <li>检查危机保底事件。</li>
+        <li>筛选年龄、标签、Flag、属性、资源、职业、教育和关系条件。</li>
+        <li>排除冷却中和 oncePerLife 已完成事件。</li>
+        <li>按 priority 选择最高优先层。</li>
+        <li>仅在同一优先层中按 weight 加权抽取。</li>
+        <li>使用 seed 与 rngCursor 产生可重放随机结果。</li>
+      </ol>
+      <p>事件数据必须明确区分 <strong>priority</strong> 与 <strong>weight</strong>：priority 决定先处理哪一层事件，weight 只决定同层候选之间的概率。</p>
+    </section>
+
+    <section>
+      <h2>五、选择结算顺序</h2>
+      <pre>验证 choiceId
+→ 复制当前状态
+→ 依序执行即时 effects
+→ 写入 futureEffects / nextEventId
+→ 更新 cooldown 与 oncePerLife 记录
+→ 写入 experience
+→ 写入不可变 timeline 条目和 delta 摘要
+→ 重新计算派生值
+→ 检查结构合法性
+→ 检查生命结束与结局
+→ 保存本地存档</pre>
+      <p>任一 Effect 非法时整次选择不得产生部分写入。第一版浏览器实现使用内存复制实现原子性。</p>
+    </section>
+
+    <section>
+      <h2>六、结局判定</h2>
+      <ol>
+        <li>先确定生命是否结束以及 deathCauseId。</li>
+        <li>筛选满足 conditions 的主结局。</li>
+        <li>按 priority 从高到低比较。</li>
+        <li>同优先级按该结局 score 公式比较。</li>
+        <li>仍相同时按 id 字典序确定，确保可重放。</li>
+        <li>只保留一个 primaryEnding。</li>
+        <li>额外计算最多六个 secondaryTags。</li>
+        <li>人生总评分按 wellbeing、relationships、growth、stability、legacy 五维加权生成。</li>
+      </ol>
+      <p>隐藏结局仅通过明确 Flag 解锁，不允许仅依靠极低随机概率覆盖其他结局。</p>
+    </section>
+
+    <section>
+      <h2>七、本地存档</h2>
+      <p>localStorage 正式 Key 为 <code>realmruckus.world.life.v1</code>。根对象必须包含 <code>schemaVersion</code>、<code>appVersion</code>、<code>savedAt</code>、<code>currentLife</code>、<code>archives</code>、<code>achievements</code> 和 <code>settings</code>。</p>
+      <ul>
+        <li>每次选择结算、创建新人生、结束人生和修改设置后保存。</li>
+        <li>历史人生最多保存 100 份；超出后删除最旧档案。</li>
+        <li>导入前必须进行 Schema 校验，失败时不得覆盖现有存档。</li>
+        <li>schemaVersion 变化必须提供显式迁移函数；无法迁移时保留原数据并提示导出。</li>
+        <li>存档保存 seed 与 rngCursor，确保下一次事件抽取可继续重放。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>八、与早期原型的迁移</h2>
+      <p>现有 <code>js/life-sim-engine.js</code> 仅是探索代码。下一阶段重构时：</p>
+      <ul>
+        <li><code>money</code>、<code>salary</code> 迁入 resources；</li>
+        <li><code>education</code>、<code>career</code> 迁入 identity；</li>
+        <li>扁平 relationships 汇总值替换为关系对象数组；</li>
+        <li>旧 <code>effect</code> 对象替换为白名单 effects 数组；</li>
+        <li>旧 <code>condition</code> 替换为统一 conditions；</li>
+        <li>旧 ending 内联对象替换为 endingId 和正式规则表；</li>
+        <li>随机数调用全部经过 seed 与 rngCursor。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>九、冻结状态</h2>
+      <p><strong>Contract v1 已冻结。</strong>后续允许增加可选字段和新枚举值，但删除字段、改变字段语义、改变结算顺序或改变存档 Key 均属于破坏性变更，必须提升 schemaVersion 并提供迁移测试。</p>
+    </section>
+  </main>
+  <footer>© 2026 Bostage Pte. Ltd. · Realm Ruckus™ · WORLD MVP</footer>
+</body>
+</html>
