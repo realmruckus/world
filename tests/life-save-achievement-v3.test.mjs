@@ -76,6 +76,19 @@ test('invalid JSON and invalid save fail closed', () => {
   assert.throws(() => importSaveJson(JSON.stringify({ schemaVersion:3 })), /Invalid appVersion/);
 });
 
+test('strict archive and achievement invariants reject malformed imports', () => {
+  const valid = archiveFinishedLife(createEmptySave(), finalizedLife(), { endedAt:'2026-07-21T01:00:00.000Z', includeSnapshot:false });
+  const missingTags = structuredClone(valid);
+  delete missingTags.archives[0].summaryTags;
+  assert.throws(() => validateSaveV3(missingTags), /archive summaryTags/);
+  const duplicate = structuredClone(valid);
+  duplicate.archives.push(structuredClone(duplicate.archives[0]));
+  assert.throws(() => validateSaveV3(duplicate), /Duplicate archive lifeId/);
+  const badAchievement = structuredClone(valid);
+  badAchievement.achievements = [123];
+  assert.throws(() => validateSaveV3(badAchievement), /Invalid achievements/);
+});
+
 test('schema v2 import migrates to v3', () => {
   const v2 = {
     schemaVersion:2, appVersion:'0.2', savedAt:'2026-07-21T00:00:00.000Z', currentLife:null,
