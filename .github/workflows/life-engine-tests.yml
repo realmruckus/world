@@ -28,6 +28,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Test Full-screen Page Contract
+        run: node tests/life-sim-page-v3.test.mjs
       - name: Test Life Engine Core
         run: node tests/life-engine-v3.test.mjs
       - name: Test Annual Event Vertical Slice
@@ -36,6 +38,8 @@ jobs:
         run: node tests/life-romance-engine-v3.test.mjs
       - name: Test Metric and Ending Engines
         run: node tests/life-metric-ending-v3.test.mjs
+      - name: Test Audit Metric Regressions
+        run: node tests/life-audit-regressions-v3.test.mjs
       - name: Test Save Archive and Achievements
         run: node tests/life-save-achievement-v3.test.mjs
       - name: Test Deterministic Simulation
