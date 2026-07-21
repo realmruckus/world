@@ -7,6 +7,8 @@ on:
       - 'life-sim.html'
       - 'js/life-*.js'
       - 'data/life-*.json'
+      - 'data/fixtures/life-*.json'
+      - 'schemas/life-*.json'
       - 'tests/life-*.test.mjs'
       - '.github/workflows/life-engine-tests.yml'
   pull_request:
@@ -14,6 +16,8 @@ on:
       - 'life-sim.html'
       - 'js/life-*.js'
       - 'data/life-*.json'
+      - 'data/fixtures/life-*.json'
+      - 'schemas/life-*.json'
       - 'tests/life-*.test.mjs'
       - '.github/workflows/life-engine-tests.yml'
 
@@ -34,6 +38,8 @@ jobs:
         run: node tests/life-engine-v3.test.mjs
       - name: Test Experience Instance Identity
         run: node tests/life-experience-identity-v3.test.mjs
+      - name: Test Life Content Contracts
+        run: node tests/life-content-contract-v1.test.mjs
       - name: Test Annual Event Vertical Slice
         run: node tests/life-event-engine-v3.test.mjs
       - name: Test Romance Stage Vertical Slice
