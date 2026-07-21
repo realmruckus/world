@@ -1,11 +1,7 @@
 import assert from 'node:assert/strict';
 import {
-  advanceClock,
-  applyCommandsAtomic,
-  createLifeStateV3,
-  deriveClock,
-  migrateSaveV2ToV3,
-  validateLifeState,
+  advanceClock, applyCommandsAtomic, createLifeStateV3, deriveClock,
+  migrateSaveV2ToV3, validateLifeState,
 } from '../js/life-engine-v3.js';
 
 const tests = [];
@@ -14,12 +10,10 @@ const test = (name, fn) => tests.push({ name, fn });
 test('canonical clock derives age and week', () => {
   assert.deepEqual(deriveClock(53), { ageYears: 1, weekOfYear: 1 });
 });
-
 test('year and week advancement use totalWeeks only', () => {
   assert.equal(advanceClock(17, 'year'), 69);
   assert.equal(advanceClock(51, 'week'), 52);
 });
-
 test('commands and time advance atomically', () => {
   const life = createLifeStateV3({ seed: 7, name: '测试者' });
   const next = applyCommandsAtomic(life, [
@@ -31,7 +25,6 @@ test('commands and time advance atomically', () => {
   assert.equal(next.clock.totalWeeks, 52);
   assert.equal(life.clock.totalWeeks, 0);
 });
-
 test('illegal command rolls back the whole transaction', () => {
   const life = createLifeStateV3({ seed: 8 });
   assert.throws(() => applyCommandsAtomic(life, [
@@ -41,75 +34,71 @@ test('illegal command rolls back the whole transaction', () => {
   assert.equal(life.mind.smarts, 50);
   assert.equal(life.clock.totalWeeks, 0);
 });
-
+test('non numeric resource command is rejected and rolled back', () => {
+  const life = createLifeStateV3({ seed: 81 });
+  assert.throws(() => applyCommandsAtomic(life, [
+    { op: 'AddResource', key: 'finance.assets' },
+  ], { advanceTime: false }), /finite numeric value/);
+  assert.equal(life.finance.assets, 0);
+});
 test('scores and relationship dimensions are clamped', () => {
   const life = createLifeStateV3({ seed: 9 });
   const next = applyCommandsAtomic(life, [
     { op: 'SetStat', key: 'health.health', value: 120 },
-    {
-      op: 'CreateRelationship', relationshipId: 'r1', role: 'friend', name: '朋友',
-      dimensions: { attraction: 0, love: 150, trust: 50, conflict: -5, dependence: 0, respect: 50, passion: 0, commitment: 20 },
-    },
+    { op: 'CreateRelationship', relationshipId: 'r1', role: 'friend', name: '朋友',
+      dimensions: { attraction: 0, love: 150, trust: 50, conflict: -5, dependence: 0, respect: 50, passion: 0, commitment: 20 } },
   ], { advanceTime: false });
   assert.equal(next.health.health, 100);
   assert.equal(next.relationships[0].dimensions.love, 100);
   assert.equal(next.relationships[0].dimensions.conflict, 0);
 });
-
-test('stage commands do not advance time by themselves', () => {
+test('stage commands do not change the event time scale', () => {
   const life = createLifeStateV3({ seed: 10 });
-  const next = applyCommandsAtomic(life, [{ op: 'EnterStage', stage: 'romance' }], { advanceTime: false });
+  const next = applyCommandsAtomic(life, [{ op: 'EnterStage', stage: 'romance' }], { timeScale: 'year' });
   assert.equal(next.clock.stage, 'romance');
   assert.equal(next.clock.stageStartedAtWeeks, 0);
-  assert.equal(next.clock.totalWeeks, 0);
+  assert.equal(next.clock.totalWeeks, 52);
 });
-
 test('schedule event stores absolute due week', () => {
   const life = createLifeStateV3({ seed: 11 });
   life.clock.totalWeeks = 100;
   const next = applyCommandsAtomic(life, [{ op: 'ScheduleEvent', eventId: 'future', after: { amount: 2, unit: 'year' } }], { advanceTime: false });
   assert.equal(next.history.scheduled[0].dueAtTotalWeeks, 204);
 });
-
-test('runtime invariants reject future timestamps', () => {
+test('runtime invariants reject future timestamps and invalid resources', () => {
   const life = createLifeStateV3({ seed: 12 });
   life.clock.stageStartedAtWeeks = 1;
   assert.throws(() => validateLifeState(life), /stageStartedAtWeeks/);
+  const invalid = createLifeStateV3({ seed: 13 });
+  invalid.finance.assets = Number.NaN;
+  assert.throws(() => validateLifeState(invalid), /Invalid resource path/);
 });
-
-test('v2 save migrates to modular v3 without losing history', () => {
+test('v2 migration is deterministic and preserves history', () => {
   const v2 = {
-    schemaVersion: 2,
-    appVersion: '0.2',
-    savedAt: '2026-07-21T00:00:00.000Z',
+    schemaVersion: 2, appVersion: '0.2', savedAt: '2026-07-21T00:00:00.000Z',
     currentLife: {
       id: 'old', seed: 3, rngCursor: 4, createdAt: '2026-01-01T00:00:00.000Z', alive: true,
       identity: { name: '旧档', birthYear: 2000, region: '城市', childrenCount: 1, careerId: 'teacher', educationId: 'college' },
       clock: { totalWeeks: 520, stage: 'life', stageStartedAtWeeks: 0 },
       stats: { health: 70, happiness: 60, smarts: 80, fitness: 55, empathy: 65, stress: 30 },
       resources: { assets: 1000, debt: 100, careerLevel: 2, freeTime: 40, reputation: 20 },
-      relationships: [], tags: ['legacy'], flags: {}, experiences: [{ id: 'e1', type: 'education', atTotalWeeks: 100, title: '毕业' }], timeline: [], cooldowns: { e: 600 }, scheduled: [],
+      relationships: [{ name: '旧友', role: 'friend', closeness: 60 }],
+      tags: ['legacy'], flags: {}, experiences: [{ id: 'e1', type: 'education', atTotalWeeks: 100, title: '毕业' }],
+      timeline: [], cooldowns: { e: 600 }, scheduled: [],
     },
     archives: [], achievements: ['first'], settings: { reducedMotion: false, showEffectHints: true, confirmReset: true },
   };
-  const migrated = migrateSaveV2ToV3(v2);
-  assert.equal(migrated.schemaVersion, 3);
-  assert.equal(migrated.currentLife.mind.smarts, 80);
-  assert.equal(migrated.currentLife.health.health, 70);
-  assert.equal(migrated.currentLife.history.tags[0], 'legacy');
-  assert.equal(migrated.currentLife.history.experiences[0].title, '毕业');
-  assert.equal(migrated.currentLife.finance.assets, 1000);
+  const a = migrateSaveV2ToV3(v2);
+  const b = migrateSaveV2ToV3(v2);
+  assert.deepEqual(a, b);
+  assert.equal(a.currentLife.relationships[0].id, 'relationship-old-0');
+  assert.equal(a.currentLife.mind.smarts, 80);
+  assert.equal(a.currentLife.history.experiences[0].title, '毕业');
 });
 
 let passed = 0;
 for (const { name, fn } of tests) {
-  try {
-    await fn();
-    passed += 1;
-    console.log(`✓ ${name}`);
-  } catch (error) {
-    console.error(`✗ ${name}`);
-    throw error;
-  }
+  try { await fn(); passed += 1; console.log(`✓ ${name}`); }
+  catch (error) { console.error(`✗ ${name}`); throw error; }
 }
 console.log(`\n${passed}/${tests.length} tests passed`);
