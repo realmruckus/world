@@ -25,6 +25,12 @@ function assertIso(value, label) {
   if (typeof value !== 'string' || Number.isNaN(Date.parse(value))) throw new Error(`Invalid ${label}`);
 }
 
+function assertUniqueStrings(values, label) {
+  if (!Array.isArray(values) || values.some((value) => typeof value !== 'string' || !value) || new Set(values).size !== values.length) {
+    throw new Error(`Invalid ${label}`);
+  }
+}
+
 export function validateSaveV3(save) {
   if (!save || typeof save !== 'object' || Array.isArray(save)) throw new Error('Save object is required');
   if (save.schemaVersion !== 3) throw new Error('Expected schemaVersion 3 save');
@@ -32,14 +38,25 @@ export function validateSaveV3(save) {
   assertIso(save.savedAt, 'savedAt');
   if (save.currentLife != null) validateLifeState(save.currentLife);
   if (!Array.isArray(save.archives) || save.archives.length > LIFE_ARCHIVE_LIMIT) throw new Error('Invalid archives');
-  if (!Array.isArray(save.achievements) || new Set(save.achievements).size !== save.achievements.length) throw new Error('Invalid achievements');
+  assertUniqueStrings(save.achievements, 'achievements');
   if (!save.settings || ['reducedMotion','showEffectHints','confirmReset'].some((key) => typeof save.settings[key] !== 'boolean')) throw new Error('Invalid settings');
+
+  const archiveIds = new Set();
   for (const archive of save.archives) {
-    if (!archive?.lifeId || !archive.name || !archive.endingId) throw new Error('Invalid archive record');
+    if (!archive?.lifeId || typeof archive.lifeId !== 'string' || !archive.name || typeof archive.name !== 'string' || !archive.endingId || typeof archive.endingId !== 'string') {
+      throw new Error('Invalid archive record');
+    }
+    if (archiveIds.has(archive.lifeId)) throw new Error('Duplicate archive lifeId');
+    archiveIds.add(archive.lifeId);
     if (!Number.isInteger(archive.ageYears) || archive.ageYears < 0) throw new Error('Invalid archive age');
     if (!Number.isInteger(archive.score) || archive.score < 0 || archive.score > 100) throw new Error('Invalid archive score');
     assertIso(archive.endedAt, 'archive endedAt');
-    if (archive.snapshot) validateLifeState(archive.snapshot);
+    assertUniqueStrings(archive.summaryTags, 'archive summaryTags');
+    if (archive.deathCauseId != null && typeof archive.deathCauseId !== 'string') throw new Error('Invalid archive deathCauseId');
+    if (archive.snapshot) {
+      validateLifeState(archive.snapshot);
+      if (archive.snapshot.id !== archive.lifeId || archive.snapshot.alive !== false || !archive.snapshot.ending) throw new Error('Invalid archive snapshot');
+    }
   }
   return true;
 }
@@ -86,6 +103,7 @@ export function setCurrentLife(save, life, savedAt = new Date(0).toISOString()) 
 
 export function unlockAchievements(save, ids, savedAt = new Date(0).toISOString()) {
   validateSaveV3(save);
+  assertUniqueStrings([...new Set(ids || [])], 'achievement ids');
   const next = deepClone(save);
   next.achievements = [...new Set([...next.achievements, ...(ids || [])])].sort();
   next.savedAt = savedAt;
