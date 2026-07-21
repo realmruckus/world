@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://world.realmruckus.com/schemas/life-save.schema.json",
+  "title": "WORLD Life Simulation Local Save v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "appVersion", "savedAt", "currentLife", "archives", "achievements", "settings"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "appVersion": { "type": "string" },
+    "savedAt": { "type": "string", "format": "date-time" },
+    "currentLife": { "anyOf": [{ "$ref": "#/$defs/life" }, { "type": "null" }] },
+    "archives": { "type": "array", "maxItems": 100, "items": { "$ref": "#/$defs/archive" } },
+    "achievements": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "settings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reducedMotion", "showEffectHints", "confirmReset"],
+      "properties": {
+        "reducedMotion": { "type": "boolean" },
+        "showEffectHints": { "type": "boolean" },
+        "confirmReset": { "type": "boolean" }
+      }
+    }
+  },
+  "$defs": {
+    "life": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "seed", "createdAt", "identity", "age", "alive", "stats", "resources", "relationships", "tags", "flags", "experiences", "timeline", "cooldowns", "scheduled", "rngCursor"],
+      "properties": {
+        "id": { "type": "string" },
+        "seed": { "type": "integer" },
+        "rngCursor": { "type": "integer", "minimum": 0 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "birthYear", "region", "familyBackground", "educationId", "careerId", "maritalStatus", "childrenCount"],
+          "properties": {
+            "name": { "type": "string" },
+            "genderExpression": { "type": "string" },
+            "birthYear": { "type": "integer" },
+            "region": { "type": "string" },
+            "familyBackground": { "type": "string" },
+            "educationId": { "type": "string" },
+            "careerId": { "type": "string" },
+            "maritalStatus": { "type": "string" },
+            "childrenCount": { "type": "integer", "minimum": 0 },
+            "housingStatus": { "type": "string" }
+          }
+        },
+        "age": { "type": "integer", "minimum": 0, "maximum": 130 },
+        "alive": { "type": "boolean" },
+        "stats": { "$ref": "#/$defs/numberMap" },
+        "resources": { "$ref": "#/$defs/numberMap" },
+        "relationships": { "type": "array", "items": { "$ref": "#/$defs/relationship" } },
+        "tags": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "flags": { "type": "object", "additionalProperties": true },
+        "experiences": { "type": "array", "items": { "$ref": "#/$defs/experience" } },
+        "timeline": { "type": "array", "items": { "$ref": "#/$defs/timelineEntry" } },
+        "cooldowns": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
+        "scheduled": { "type": "array", "items": { "$ref": "#/$defs/scheduled" } },
+        "pendingEvent": { "anyOf": [{ "type": "object" }, { "type": "null" }] },
+        "ending": { "anyOf": [{ "type": "object" }, { "type": "null" }] }
+      }
+    },
+    "relationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "role", "status", "closeness", "trust", "conflict", "sharedExperiences"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "status": { "type": "string" },
+        "closeness": { "type": "number", "minimum": 0, "maximum": 100 },
+        "trust": { "type": "number", "minimum": 0, "maximum": 100 },
+        "conflict": { "type": "number", "minimum": 0, "maximum": 100 },
+        "dependency": { "type": "number", "minimum": 0, "maximum": 100 },
+        "sharedExperiences": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "experience": {
+      "type": "object",
+      "required": ["id", "type", "age", "title"],
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string" },
+        "age": { "type": "integer" },
+        "title": { "type": "string" },
+        "data": { "type": "object" }
+      }
+    },
+    "timelineEntry": {
+      "type": "object",
+      "required": ["id", "age", "year", "kind", "title", "summary"],
+      "properties": {
+        "id": { "type": "string" },
+        "age": { "type": "integer" },
+        "year": { "type": "integer" },
+        "kind": { "type": "string" },
+        "eventId": { "type": "string" },
+        "choiceId": { "type": "string" },
+        "title": { "type": "string" },
+        "summary": { "type": "string" },
+        "delta": { "type": "object" }
+      }
+    },
+    "scheduled": {
+      "type": "object",
+      "required": ["id", "dueAge", "kind", "payload"],
+      "properties": {
+        "id": { "type": "string" },
+        "dueAge": { "type": "integer" },
+        "kind": { "enum": ["event", "effects"] },
+        "payload": { "type": "object" }
+      }
+    },
+    "archive": {
+      "type": "object",
+      "required": ["lifeId", "name", "age", "endingId", "score", "endedAt", "summaryTags"],
+      "properties": {
+        "lifeId": { "type": "string" },
+        "name": { "type": "string" },
+        "age": { "type": "integer" },
+        "endingId": { "type": "string" },
+        "deathCauseId": { "type": "string" },
+        "score": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "endedAt": { "type": "string", "format": "date-time" },
+        "summaryTags": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "snapshot": { "$ref": "#/$defs/life" }
+      }
+    },
+    "numberMap": { "type": "object", "additionalProperties": { "type": "number" } }
+  }
+}
