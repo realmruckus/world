@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 3,
+  "expressionLanguage": "realmruckus-life-metric-v1",
+  "evaluation": {
+    "order": "dependency_topological_order",
+    "numberType": "finite_double",
+    "round": "nearest",
+    "clampMetricRange": [0, 100],
+    "missingPathPolicy": "use_declared_default_or_error",
+    "unknownFunctionPolicy": "error",
+    "cyclePolicy": "error"
+  },
+  "grammar": {
+    "operators": ["+", "-", "*", "/"],
+    "literals": ["number", "single_quoted_string"],
+    "references": ["state.path", "previous_metric"],
+    "functionCall": "name(argument, ...)"
+  },
+  "functions": {
+    "clamp": { "arguments": ["number"], "result": "min(100,max(0,value))" },
+    "min": { "arguments": ["number", "number"], "variadic": true },
+    "max": { "arguments": ["number", "number"], "variadic": true },
+    "logNormalize": { "arguments": ["value", "min", "max"], "result": "clamp(100*log1p(max(0,value-min))/log1p(max-min))", "empty": 0 },
+    "countUniqueExperienceTag": { "arguments": ["experiences", "tag"], "empty": 0 },
+    "meanDimension": { "arguments": ["relationships", "role", "dimension"], "empty": 0 },
+    "countRelationshipRuptures": { "arguments": ["relationships", "role"], "empty": 0 },
+    "countRelationships": { "arguments": ["relationships", "role", "status"], "empty": 0 },
+    "uniqueExperienceTypeRatio": { "arguments": ["experiences"], "denominator": 14, "empty": 0 },
+    "uniqueCareerRatio": { "arguments": ["timeline"], "denominator": 8, "empty": 0 },
+    "uniqueRegionRatio": { "arguments": ["timeline"], "denominator": 5, "empty": 0 },
+    "uniqueMajorActivityRatio": { "arguments": ["experiences"], "denominator": 10, "empty": 0 },
+    "profitableYearsRatio": { "arguments": ["timeline"], "empty": 0 },
+    "entrepreneurshipScore": { "arguments": ["experiences"], "result": "clamp(countUniqueExperienceTag(experiences,'entrepreneurship_progress')*12)", "empty": 0 },
+    "businessAssetScore": { "arguments": ["finance"], "result": "logNormalize(max(0,finance.businessAssets),0,5000000)", "defaults": { "finance.businessAssets": 0 } },
+    "profitableBusinessYearsRatio": { "arguments": ["timeline"], "empty": 0 },
+    "reputationFromCreativeWork": { "arguments": ["experiences", "reputation"], "empty": 0 },
+    "publicContributionMagnitude": { "arguments": ["experiences"], "empty": 0 },
+    "dependencyPenalty": { "arguments": ["relationships", "finance"], "empty": 0 }
+  },
+  "stateDefaults": {
+    "identity.childrenCount": 0,
+    "body.fitness": 50,
+    "mind.smarts": 50,
+    "mind.empathy": 50,
+    "mind.stress": 50,
+    "career.level": 0,
+    "career.freeTime": 50,
+    "finance.assets": 0,
+    "finance.debt": 0,
+    "finance.businessAssets": 0,
+    "finance.reputation": 0,
+    "health.health": 50
+  }
+}
