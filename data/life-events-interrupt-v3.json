@@ -1,0 +1,24 @@
+[
+  {
+    "id":"interrupt_health_exhaustion","version":3,"type":"health","stage":"life","timeScale":"week","canInterruptStage":true,"priority":800,"weight":1,"cooldown":{"amount":12,"unit":"week"},
+    "conditions":{"statMin":{"mind.stress":75}},
+    "scene":{"id":"clinic_waiting_room","caption":"持续疲惫让你不得不停下来。"},
+    "narration":{"title":"身体发出警告","description":"这周的关系安排被健康问题打断。"},
+    "aiTags":["health","interrupt","romance_safe"],
+    "choices":[
+      {"id":"rest","label":"暂停安排并认真休息","result":"你优先处理健康，也向对方说明了情况。","commands":[{"op":"AddStat","key":"mind.stress","amount":-12},{"op":"AddStat","key":"health.health","amount":4},{"op":"ModifyRelationship","relationshipId":"partner-1","dimensions":{"trust":3,"respect":3}}]},
+      {"id":"push","label":"勉强维持原计划","result":"你完成了约定，但身体和情绪更加疲惫。","commands":[{"op":"AddStat","key":"mind.stress","amount":8},{"op":"AddStat","key":"health.health","amount":-5},{"op":"ModifyRelationship","relationshipId":"partner-1","dimensions":{"conflict":3}}]}
+    ]
+  },
+  {
+    "id":"interrupt_family_emergency","version":3,"type":"birth_family","stage":"life","timeScale":"week","canInterruptStage":true,"priority":780,"weight":1,"oncePerLife":true,
+    "conditions":{"flagsAll":["family_emergency"]},
+    "scene":{"id":"hospital_corridor","caption":"家里突然需要你立即处理一件重要事情。"},
+    "narration":{"title":"家庭紧急情况","description":"这周原本的约会计划不得不改变。"},
+    "aiTags":["family","interrupt","responsibility"],
+    "choices":[
+      {"id":"explain","label":"坦诚说明并请求理解","result":"对方愿意给你时间处理家庭事务。","commands":[{"op":"ClearFlag","flag":"family_emergency"},{"op":"ModifyRelationship","relationshipId":"partner-1","dimensions":{"trust":5,"respect":5,"conflict":-2}}]},
+      {"id":"hide","label":"不解释，直接取消安排","result":"误解让这段关系出现了裂缝。","commands":[{"op":"ClearFlag","flag":"family_emergency"},{"op":"ModifyRelationship","relationshipId":"partner-1","dimensions":{"trust":-8,"conflict":8}}]}
+    ]
+  }
+]
