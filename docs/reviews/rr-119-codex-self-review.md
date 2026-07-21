@@ -6,7 +6,7 @@
 - 人工审核入口：RR-112 第二轮
 - Base：`a23ff20047ef76017a8ae8f994876fc6837f3004`（PR #5 原 Head）
 - 修复分支：`codex/rr-112-fix-1`
-- 最终生产 Head：`e1da39175f38e3ce55e0f38c4d932ebed9853e18`
+- 最终生产 Head：`acb6e617afa2e64cb0cd9150da424a3882b4dff9`
 - PR：#5，必须保持 Draft
 - 审核轮次：三轮；其中两轮产生反例驱动修复，第三轮为最终独立复核
 
@@ -30,26 +30,26 @@
 
 ## 第一轮：实现者视角
 
-- 冻结 Head：`6060ca1855854e027b44a526c20dfe25a2304515`
+- 冻结 Head：`dfe2ff86d087f065a61b9bf1d9850758f7a0a6bd`
 - 审核重点：RR-119 条目覆盖、测试、Simulation 和修改范围。
 - 发现阻塞：首份 10,000 报告为 `lonely_later_life=100%`、关系路径 `none=100%`；Adapter 未把 Contract 父母 NPC/家庭支持映射为正式 Engine 家庭关系。
-- 失败测试 Commit：`5ecc8f2`。
-- 最少修复 Commit：`969e783`。
+- 失败测试 Commit：`80b1660`。
+- 最少修复 Commit：`5be66c3`。
 - 修复结果：家庭关系进入正式 LifeState；`lonely/no-relationship` 退化反例通过；完整回归通过。
 
 ## 第二轮：审查者视角
 
-- 冻结 Head：`969e783eb07eeb7444d3795f4c0f70a848edf6d3`
+- 冻结 Head：`5be66c39c9227fa0e2fb44ee290b15573665a888`
 - 审核方法：假设实现错误，重新审核 Base...Head，并逐项对照 RR-119 专项清单。
 - 发现必修：`composeLifeIdentity` 仍从 Family 示例 NPC 推导 Parent Job，未允许 Parent Job 独立选择。
-- 失败测试 Commit：`0a7ee6b`。
-- 最少修复 Commit：`e1da391`。
+- 失败测试 Commit：`49b8b94`。
+- 最少修复 Commit：`acb6e61`。
 - 修复结果：调用方必须提交与家庭父母槽数量一致的独立 `parentJobIds`；未知引用失败关闭；全部职业均可组合。
 
 ## 第三轮：最终独立复核
 
-- 冻结 Head：`e1da39175f38e3ce55e0f38c4d932ebed9853e18`
-- 重新审核 `a23ff20...e1da391` 完整 Diff、全部 Commit 和报告。
+- 冻结 Head：`acb6e617afa2e64cb0cd9150da424a3882b4dff9`
+- 重新审核 `a23ff20...acb6e61` 完整 Diff、全部 Commit 和报告。
 - 范围：只修改 Contract Schema/Fixture、Loader/Validator、Simulation Adapter/Runner、测试、CI 与证据；从 `main` 合入的三份正式执行文档不属于 RR-119 产品实现。
 - 未修改正式时间模型、Command 原子语义、事件文案、Metric 权重、Ending 意义、UI、视觉或 approved 内容。
 - 未发现隐式 `Math.random`、当前时间依赖、`eval`、调试残留、测试跳过/弱化或生产目录写入。
