@@ -91,6 +91,33 @@ function stableRelationshipId(lifeId, index) {
   return `relationship-${String(lifeId || 'life').replace(/[^a-zA-Z0-9_-]/g, '_')}-${index}`;
 }
 
+export function evaluateRelationshipTransition(relationship, intent, targetStatus, rules) {
+  if (!rules || !Array.isArray(rules.transitions)) throw new Error('Relationship rules are required');
+  const rule = rules.transitions.find((item) =>
+    item.from === relationship.status && item.to === targetStatus && item.intent === intent);
+  if (!rule) return { allowed: false, reason: 'transition_not_registered' };
+  for (const [key, minimum] of Object.entries(rule.min || {})) {
+    if (!RELATIONSHIP_DIMENSIONS.includes(key)) throw new Error(`Unknown relationship dimension in rule: ${key}`);
+    if (relationship.dimensions[key] < minimum) return { allowed: false, reason: `minimum_not_met:${key}` };
+  }
+  for (const [key, maximum] of Object.entries(rule.max || {})) {
+    if (!RELATIONSHIP_DIMENSIONS.includes(key)) throw new Error(`Unknown relationship dimension in rule: ${key}`);
+    if (relationship.dimensions[key] > maximum) return { allowed: false, reason: `maximum_exceeded:${key}` };
+  }
+  return { allowed: true, rule };
+}
+
+export function relationshipStageWeeks(life) {
+  if (life.clock.stage !== 'romance') return 0;
+  return life.clock.totalWeeks - life.clock.stageStartedAtWeeks;
+}
+
+export function relationshipHardLimitReached(life, rules) {
+  const limit = rules?.hardLimitResolution?.atWeeks;
+  if (!Number.isInteger(limit) || limit < 0) throw new Error('Invalid relationship hard limit');
+  return life.clock.stage === 'romance' && relationshipStageWeeks(life) >= limit;
+}
+
 function applyCommand(life, command, options) {
   if (!command || typeof command.op !== 'string') throw new Error('Command op is required');
   switch (command.op) {
@@ -160,7 +187,8 @@ function applyCommand(life, command, options) {
     case 'RequestRelationshipTransition': {
       const relationship = findRelationship(life, command.relationshipId);
       if (!command.targetStatus || !command.intent) throw new Error('Relationship transition requires intent and targetStatus');
-      if (!RELATIONSHIP_STATUSES.has(command.targetStatus)) throw new Error('Unknown relationship status');
+      const result = evaluateRelationshipTransition(relationship, command.intent, command.targetStatus, options.relationshipRules);
+      if (!result.allowed) throw new Error(`Relationship transition rejected: ${result.reason}`);
       relationship.status = command.targetStatus;
       relationship.statusChangedAtWeeks = life.clock.totalWeeks;
       return;
