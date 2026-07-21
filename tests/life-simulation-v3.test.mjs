@@ -31,6 +31,7 @@ test('runLife is deterministic for identical seed, policy and content', () => {
   assert.equal(a.summary.seed, 100);
   assert.ok(a.summary.turns > 0);
   assert.ok(a.summary.primaryEnding);
+  assert.deepEqual(a.summary.diagnostics, b.summary.diagnostics);
 });
 
 test('runLife enforces a finite turn budget', () => {
@@ -53,6 +54,22 @@ test('batch report includes endings, event coverage and operation statistics', (
   assert.ok(report.averageTurns > 0);
   assert.ok(report.eventCoverageRate > 0 && report.eventCoverageRate <= 1);
   assert.ok(report.repeatRate >= 0 && report.repeatRate <= 1);
+  assert.ok(report.romanceStallRate >= 0 && report.romanceStallRate <= 1);
+  assert.ok(report.invalidChoiceRate >= 0 && report.invalidChoiceRate <= 1);
+  assert.equal(typeof report.achievementUnlockRate, 'number');
+  assert.equal(typeof report.relationshipPathDistribution, 'object');
+});
+
+test('diagnostic statistics aggregate declared achievements and relationship paths', () => {
+  const results = [
+    { summary: { primaryEnding:'ordinary_complete', deathCause:'old_age', careerId:'none', relationshipStatuses:['married'], relationshipPath:['dating','exclusive','married'], eventIds:['a'], uniqueEventCount:1, metrics:{}, turns:3, lifeScore:50, diagnostics:{ romanceStalled:false, invalidChoiceCount:1, choiceCount:3, unlockedAchievements:['first_life'] } } },
+    { summary: { primaryEnding:'ordinary_complete', deathCause:'old_age', careerId:'none', relationshipStatuses:['broken_up'], relationshipPath:['dating','broken_up'], eventIds:['a'], uniqueEventCount:1, metrics:{}, turns:2, lifeScore:40, diagnostics:{ romanceStalled:true, invalidChoiceCount:0, choiceCount:2, unlockedAchievements:[] } } },
+  ];
+  const report = summarizeBatch(results, { annualEvents:[{id:'a'}], romanceEvents:[], interruptEvents:[], achievementDefinitions:[{id:'first_life'},{id:'five_lives'}] });
+  assert.equal(report.romanceStallRate, 0.5);
+  assert.equal(report.invalidChoiceRate, 0.2);
+  assert.equal(report.achievementUnlockRate, 0.25);
+  assert.equal(report.relationshipPathDistribution['dating>exclusive>married'], 1);
 });
 
 test('summarizeBatch rejects invalid results', () => {
