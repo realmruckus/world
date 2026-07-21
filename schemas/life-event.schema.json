@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://world.realmruckus.com/schemas/life-event.schema.json",
+  "title": "WORLD Life Simulation Event v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "version", "type", "title", "description", "weight", "conditions", "choices"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]{2,63}$" },
+    "version": { "const": 1 },
+    "type": { "enum": ["birth_family", "childhood", "education", "career", "wealth", "social", "romance", "parenting", "health", "legal_risk", "public_era", "opportunity", "values", "later_life"] },
+    "tags": { "type": "array", "items": { "type": "string" }, "uniqueItems": true, "default": [] },
+    "rarity": { "enum": ["common", "uncommon", "rare", "legendary"], "default": "common" },
+    "priority": { "type": "integer", "minimum": 0, "maximum": 1000, "default": 100 },
+    "weight": { "type": "number", "exclusiveMinimum": 0 },
+    "cooldownYears": { "type": "integer", "minimum": 0, "default": 0 },
+    "oncePerLife": { "type": "boolean", "default": false },
+    "milestone": { "type": "boolean", "default": false },
+    "conditions": { "$ref": "#/$defs/conditions" },
+    "title": { "type": "string", "minLength": 1, "maxLength": 80 },
+    "description": { "type": "string", "minLength": 1, "maxLength": 500 },
+    "visual": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "scene": { "type": "string" },
+        "variant": { "type": "integer", "minimum": 0 },
+        "caption": { "type": "string", "maxLength": 120 }
+      }
+    },
+    "choices": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4,
+      "items": { "$ref": "#/$defs/choice" }
+    }
+  },
+  "$defs": {
+    "conditions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "age": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "min": { "type": "integer", "minimum": 0, "maximum": 130 },
+            "max": { "type": "integer", "minimum": 0, "maximum": 130 }
+          }
+        },
+        "requiredTags": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "forbiddenTags": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "flagsAll": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "flagsNone": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "statMin": { "$ref": "#/$defs/numberMap" },
+        "statMax": { "$ref": "#/$defs/numberMap" },
+        "resourceMin": { "$ref": "#/$defs/numberMap" },
+        "resourceMax": { "$ref": "#/$defs/numberMap" },
+        "careerIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "educationIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "relationship": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["role"],
+          "properties": {
+            "role": { "type": "string" },
+            "status": { "type": "string" },
+            "closenessMin": { "type": "number", "minimum": 0, "maximum": 100 },
+            "conflictMax": { "type": "number", "minimum": 0, "maximum": 100 }
+          }
+        }
+      }
+    },
+    "choice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "result", "effects"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]{1,47}$" },
+        "label": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "hint": { "type": "string", "maxLength": 160 },
+        "result": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "effects": { "type": "array", "items": { "$ref": "#/$defs/effect" } },
+        "futureEffects": { "type": "array", "items": { "$ref": "#/$defs/futureEffect" } },
+        "nextEventId": { "type": "string" },
+        "endingId": { "type": "string" }
+      }
+    },
+    "effect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["op"],
+      "properties": {
+        "op": { "enum": ["add_stat", "set_stat", "add_resource", "set_resource", "add_tag", "remove_tag", "set_flag", "clear_flag", "set_identity", "create_relationship", "modify_relationship", "end_relationship", "append_experience", "set_career", "set_education", "schedule_event"] },
+        "key": { "type": "string" },
+        "value": {},
+        "amount": { "type": "number" },
+        "role": { "type": "string" },
+        "relationshipId": { "type": "string" },
+        "eventId": { "type": "string" },
+        "afterYears": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "payload": { "type": "object" }
+      }
+    },
+    "futureEffect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["afterYears", "effects"],
+      "properties": {
+        "afterYears": { "type": "integer", "minimum": 1, "maximum": 100 },
+        "conditions": { "$ref": "#/$defs/conditions" },
+        "effects": { "type": "array", "items": { "$ref": "#/$defs/effect" } }
+      }
+    },
+    "numberMap": {
+      "type": "object",
+      "additionalProperties": { "type": "number" }
+    }
+  }
+}
