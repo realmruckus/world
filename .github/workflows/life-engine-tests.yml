@@ -36,3 +36,5 @@ jobs:
         run: node tests/life-metric-ending-v3.test.mjs
       - name: Test Save Archive and Achievements
         run: node tests/life-save-achievement-v3.test.mjs
+      - name: Test Deterministic Simulation
+        run: node tests/life-simulation-v3.test.mjs
