@@ -9,6 +9,9 @@ const RESOURCE_PATHS = new Set([
   'career.level','finance.assets','finance.debt','finance.businessAssets','finance.income','finance.cash',
 ]);
 const STAGES = new Set(['life','romance']);
+const RELATIONSHIP_STATUSES = new Set([
+  'active','estranged','deceased','potential','dating','exclusive','cohabiting','engaged','married','paused','broken_up','no_contact',
+]);
 
 export function clamp(value, min = 0, max = 100) {
   if (!Number.isFinite(value)) throw new Error('Numeric value must be finite');
@@ -58,13 +61,8 @@ export function createLifeStateV3(options = {}) {
   };
 }
 
-function deepClone(value) {
-  return structuredClone(value);
-}
-
-function getPath(object, path) {
-  return path.split('.').reduce((current, key) => current?.[key], object);
-}
+const deepClone = (value) => structuredClone(value);
+const getPath = (object, path) => path.split('.').reduce((current, key) => current?.[key], object);
 
 function setPath(object, path, value) {
   const keys = path.split('.');
@@ -89,23 +87,29 @@ function findRelationship(life, id) {
   return relationship;
 }
 
-function applyCommand(life, command) {
+function stableRelationshipId(lifeId, index) {
+  return `relationship-${String(lifeId || 'life').replace(/[^a-zA-Z0-9_-]/g, '_')}-${index}`;
+}
+
+function applyCommand(life, command, options) {
   if (!command || typeof command.op !== 'string') throw new Error('Command op is required');
   switch (command.op) {
     case 'AddStat':
     case 'SetStat': {
       if (!SCORE_PATHS.has(command.key)) throw new Error(`Unknown numeric path: ${command.key}`);
       const current = Number(getPath(life, command.key));
-      const value = command.op === 'AddStat' ? current + Number(command.amount) : Number(command.value);
-      setPath(life, command.key, clamp(value));
+      const operand = command.op === 'AddStat' ? Number(command.amount) : Number(command.value);
+      if (!Number.isFinite(operand)) throw new Error(`${command.op} requires a finite numeric value`);
+      setPath(life, command.key, clamp(command.op === 'AddStat' ? current + operand : operand));
       return;
     }
     case 'AddResource':
     case 'SetResource': {
       if (!RESOURCE_PATHS.has(command.key)) throw new Error(`Unknown numeric path: ${command.key}`);
       const current = Number(getPath(life, command.key));
-      const value = command.op === 'AddResource' ? current + Number(command.amount) : Number(command.value);
-      setPath(life, command.key, Math.max(0, value));
+      const operand = command.op === 'AddResource' ? Number(command.amount) : Number(command.value);
+      if (!Number.isFinite(operand)) throw new Error(`${command.op} requires a finite numeric value`);
+      setPath(life, command.key, Math.max(0, command.op === 'AddResource' ? current + operand : operand));
       return;
     }
     case 'AddTag':
@@ -114,6 +118,7 @@ function applyCommand(life, command) {
       if (!life.history.tags.includes(command.tag)) life.history.tags.push(command.tag);
       return;
     case 'RemoveTag':
+      if (!command.tag) throw new Error('RemoveTag requires tag');
       life.history.tags = life.history.tags.filter((tag) => tag !== command.tag);
       return;
     case 'SetFlag':
@@ -121,10 +126,12 @@ function applyCommand(life, command) {
       life.history.flags[command.flag] = command.value ?? true;
       return;
     case 'ClearFlag':
+      if (!command.flag) throw new Error('ClearFlag requires flag');
       delete life.history.flags[command.flag];
       return;
     case 'CreateRelationship': {
       if (!command.relationshipId || !command.role || !command.name) throw new Error('CreateRelationship missing fields');
+      if (!RELATIONSHIP_STATUSES.has(command.targetStatus || 'active')) throw new Error('Unknown relationship status');
       if (life.relationships.some((item) => item.id === command.relationshipId)) throw new Error(`Duplicate relationship: ${command.relationshipId}`);
       life.relationships.push({
         id: command.relationshipId,
@@ -140,31 +147,37 @@ function applyCommand(life, command) {
     }
     case 'ModifyRelationship': {
       const relationship = findRelationship(life, command.relationshipId);
-      for (const [key, delta] of Object.entries(command.dimensions || {})) {
+      const entries = Object.entries(command.dimensions || {});
+      if (!entries.length) throw new Error('ModifyRelationship requires dimensions');
+      for (const [key, deltaRaw] of entries) {
         if (!RELATIONSHIP_DIMENSIONS.includes(key)) throw new Error(`Unknown relationship dimension: ${key}`);
-        relationship.dimensions[key] = clamp(relationship.dimensions[key] + Number(delta));
+        const delta = Number(deltaRaw);
+        if (!Number.isFinite(delta)) throw new Error(`Relationship delta must be finite: ${key}`);
+        relationship.dimensions[key] = clamp(relationship.dimensions[key] + delta);
       }
       return;
     }
     case 'RequestRelationshipTransition': {
       const relationship = findRelationship(life, command.relationshipId);
       if (!command.targetStatus || !command.intent) throw new Error('Relationship transition requires intent and targetStatus');
+      if (!RELATIONSHIP_STATUSES.has(command.targetStatus)) throw new Error('Unknown relationship status');
       relationship.status = command.targetStatus;
       relationship.statusChangedAtWeeks = life.clock.totalWeeks;
       return;
     }
     case 'EndRelationship': {
       const relationship = findRelationship(life, command.relationshipId);
-      relationship.status = command.targetStatus || 'broken_up';
+      const targetStatus = command.targetStatus || 'broken_up';
+      if (!RELATIONSHIP_STATUSES.has(targetStatus)) throw new Error('Unknown relationship status');
+      relationship.status = targetStatus;
       relationship.statusChangedAtWeeks = life.clock.totalWeeks;
       return;
     }
-    case 'AppendExperience': {
+    case 'AppendExperience':
       if (!command.experience?.id || !command.experience?.type || !command.experience?.title) throw new Error('AppendExperience requires id, type and title');
       life.history.experiences.push({ ...deepClone(command.experience), atTotalWeeks: life.clock.totalWeeks });
       return;
-    }
-    case 'ScheduleEvent': {
+    case 'ScheduleEvent':
       if (!command.eventId || !command.after) throw new Error('ScheduleEvent requires eventId and after');
       life.history.scheduled.push({
         id: command.id || `${command.eventId}-${life.clock.totalWeeks}-${life.history.scheduled.length}`,
@@ -173,11 +186,12 @@ function applyCommand(life, command) {
         payload: { eventId: command.eventId, ...(command.payload || {}) },
       });
       return;
-    }
     case 'SetCareer':
+      if (command.value == null && command.key == null) throw new Error('SetCareer requires value');
       life.career.id = String(command.value ?? command.key);
       return;
     case 'SetEducation':
+      if (command.value == null && command.key == null) throw new Error('SetEducation requires value');
       life.career.educationId = String(command.value ?? command.key);
       return;
     case 'EnterStage':
@@ -201,6 +215,7 @@ export function validateLifeState(life) {
   if (!STAGES.has(stage)) throw new Error('Invalid stage');
   if (!Number.isInteger(stageStartedAtWeeks) || stageStartedAtWeeks < 0 || stageStartedAtWeeks > totalWeeks) throw new Error('stageStartedAtWeeks must be <= totalWeeks');
   for (const relationship of life.relationships || []) {
+    if (!RELATIONSHIP_STATUSES.has(relationship.status)) throw new Error(`Invalid relationship status: ${relationship.status}`);
     if (relationship.relationshipStartedAtWeeks > totalWeeks) throw new Error('relationshipStartedAtWeeks must be <= totalWeeks');
     if (relationship.statusChangedAtWeeks > totalWeeks) throw new Error('statusChangedAtWeeks must be <= totalWeeks');
     for (const key of RELATIONSHIP_DIMENSIONS) {
@@ -212,29 +227,31 @@ export function validateLifeState(life) {
     const value = getPath(life, path);
     if (!Number.isFinite(value) || value < 0 || value > 100) throw new Error(`Invalid score path: ${path}`);
   }
+  for (const path of RESOURCE_PATHS) {
+    const value = getPath(life, path);
+    if (!Number.isFinite(value) || value < 0) throw new Error(`Invalid resource path: ${path}`);
+  }
   return true;
 }
 
 export function applyCommandsAtomic(life, commands, options = {}) {
   const next = deepClone(life);
-  for (const command of commands || []) applyCommand(next, command);
-  if (options.advanceTime !== false) {
-    const scale = options.timeScale || (next.clock.stage === 'romance' ? 'week' : 'year');
-    next.clock.totalWeeks = advanceClock(next.clock.totalWeeks, scale);
-  }
+  const eventTimeScale = options.timeScale || (life.clock.stage === 'romance' ? 'week' : 'year');
+  for (const command of commands || []) applyCommand(next, command, options);
+  if (options.advanceTime !== false) next.clock.totalWeeks = advanceClock(next.clock.totalWeeks, eventTimeScale);
   validateLifeState(next);
   return next;
 }
 
-function migrateRelationshipV2(item, totalWeeks) {
+function migrateRelationshipV2(item, totalWeeks, lifeId, index) {
   const closeness = Number(item.closeness ?? 0);
   const trust = Number(item.trust ?? closeness);
   const conflict = Number(item.conflict ?? 0);
   return {
-    id: item.id || `relationship-${Math.random().toString(36).slice(2)}`,
+    id: item.id || stableRelationshipId(lifeId, index),
     name: item.name || '未知人物',
     role: item.role || 'other',
-    status: item.status || 'active',
+    status: RELATIONSHIP_STATUSES.has(item.status) ? item.status : 'active',
     dimensions: normalizeDimensions({ attraction: closeness, love: closeness, trust, conflict, dependence: item.dependency ?? 0, respect: trust, passion: 0, commitment: closeness }),
     relationshipStartedAtWeeks: Math.min(item.relationshipStartedAtWeeks ?? 0, totalWeeks),
     statusChangedAtWeeks: Math.min(item.statusChangedAtWeeks ?? 0, totalWeeks),
@@ -248,8 +265,7 @@ export function migrateLifeV2ToV3(oldLife) {
   const stats = oldLife.stats || {};
   const resources = oldLife.resources || {};
   const life = createLifeStateV3({
-    id: oldLife.id,
-    seed: oldLife.seed,
+    id: oldLife.id, seed: oldLife.seed,
     name: oldLife.identity?.name || oldLife.name,
     birthYear: oldLife.identity?.birthYear || oldLife.year || 2000,
     region: oldLife.identity?.region || oldLife.location || '普通城市',
@@ -271,16 +287,16 @@ export function migrateLifeV2ToV3(oldLife) {
   life.mind.discipline = clamp(stats.discipline ?? 50);
   life.career.id = oldLife.identity?.careerId || oldLife.career || 'none';
   life.career.educationId = oldLife.identity?.educationId || oldLife.education || 'none';
-  life.career.level = Math.max(0, resources.careerLevel ?? 0);
-  life.career.freeTime = clamp(resources.freeTime ?? 60);
-  life.finance.assets = Math.max(0, resources.assets ?? oldLife.money ?? 0);
-  life.finance.debt = Math.max(0, resources.debt ?? 0);
-  life.finance.businessAssets = Math.max(0, resources.businessAssets ?? 0);
+  life.career.level = Math.max(0, Number(resources.careerLevel ?? 0));
+  life.career.freeTime = clamp(stats.freeTime ?? resources.freeTime ?? 60);
+  life.finance.assets = Math.max(0, Number(resources.assets ?? oldLife.money ?? 0));
+  life.finance.debt = Math.max(0, Number(resources.debt ?? 0));
+  life.finance.businessAssets = Math.max(0, Number(resources.businessAssets ?? 0));
   life.finance.reputation = clamp(resources.reputation ?? 0);
-  life.finance.income = Math.max(0, resources.income ?? oldLife.salary ?? 0);
-  life.finance.cash = Math.max(0, resources.cash ?? oldLife.money ?? 0);
+  life.finance.income = Math.max(0, Number(resources.income ?? oldLife.salary ?? 0));
+  life.finance.cash = Math.max(0, Number(resources.cash ?? oldLife.money ?? 0));
   life.health.health = clamp(stats.health ?? 70);
-  life.relationships = (oldLife.relationships || []).map((item) => migrateRelationshipV2(item, totalWeeks));
+  life.relationships = (oldLife.relationships || []).map((item, index) => migrateRelationshipV2(item, totalWeeks, life.id, index));
   life.history = {
     tags: [...(oldLife.tags || oldLife.traits || [])],
     flags: deepClone(oldLife.flags || {}),
