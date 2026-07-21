@@ -38,19 +38,8 @@ jobs:
         run: node tests/life-event-engine-v3.test.mjs
       - name: Test Romance Stage Vertical Slice
         run: node tests/life-romance-engine-v3.test.mjs
-      - name: Capture Metric and Ending Test
-        id: metric
-        continue-on-error: true
-        run: node tests/life-metric-ending-v3.test.mjs > metric-test.log 2>&1
-      - name: Upload Metric Test Log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: metric-test-log
-          path: metric-test.log
-      - name: Fail on Metric Test Error
-        if: steps.metric.outcome == 'failure'
-        run: cat metric-test.log && exit 1
+      - name: Test Metric and Ending Engines
+        run: node tests/life-metric-ending-v3.test.mjs
       - name: Test Audit Metric Regressions
         run: node tests/life-audit-regressions-v3.test.mjs
       - name: Test Save Archive and Achievements
