@@ -5,6 +5,7 @@ import { calculateDerivedMetrics } from '../js/life-metric-engine-v3.js';
 import { finalizeLife, resolveEnding } from '../js/life-ending-engine-v3.js';
 
 const registry = JSON.parse(fs.readFileSync(new URL('../data/life-derived-metrics.json', import.meta.url), 'utf8'));
+const dsl = JSON.parse(fs.readFileSync(new URL('../data/life-metric-dsl.json', import.meta.url), 'utf8'));
 const endings = JSON.parse(fs.readFileSync(new URL('../data/life-ending-rules.json', import.meta.url), 'utf8'));
 const tests = [];
 const test = (name, fn) => tests.push({ name, fn });
@@ -39,23 +40,29 @@ function sampleLife() {
 
 test('metric registry evaluates all metrics deterministically', () => {
   const life = sampleLife();
-  const a = calculateDerivedMetrics(life, registry);
-  const b = calculateDerivedMetrics(life, registry);
+  const a = calculateDerivedMetrics(life, registry, dsl);
+  const b = calculateDerivedMetrics(life, registry, dsl);
   assert.deepEqual(a, b);
   for (const value of Object.values(a)) assert.equal(Number.isInteger(value) && value >= 0 && value <= 100, true);
   assert.ok(a.health > 70);
   assert.ok(a.relationship > 70);
 });
 
+test('declared state defaults are used and undeclared paths fail closed', () => {
+  const state = {};
+  assert.deepEqual(calculateDerivedMetrics(state, { metrics: { value: { formula:'mind.smarts' } } }, dsl), { value: 50 });
+  assert.throws(() => calculateDerivedMetrics(state, { metrics: { bad: { formula:'mind.unknown' } } }, dsl), /Unknown metric reference/);
+});
+
 test('unknown function and dependency cycle fail closed', () => {
   const life = sampleLife();
-  assert.throws(() => calculateDerivedMetrics(life, { metrics: { bad: { formula:'unknownFn(1)' } } }), /Unknown metric function/);
-  assert.throws(() => calculateDerivedMetrics(life, { metrics: { a:{formula:'b'}, b:{formula:'a'} } }), /dependency cycle/);
+  assert.throws(() => calculateDerivedMetrics(life, { metrics: { bad: { formula:'unknownFn(1)' } } }, dsl), /Unknown metric function/);
+  assert.throws(() => calculateDerivedMetrics(life, { metrics: { a:{formula:'b'}, b:{formula:'a'} } }, dsl), /dependency cycle/);
 });
 
 test('ending selection uses priority then score then id', () => {
   const life = sampleLife();
-  const metrics = calculateDerivedMetrics(life, registry);
+  const metrics = calculateDerivedMetrics(life, registry, dsl);
   const ending = resolveEnding(life, metrics, endings);
   assert.equal(ending.deathCause, 'old_age');
   assert.ok(typeof ending.primaryEnding === 'string');
@@ -65,7 +72,7 @@ test('ending selection uses priority then score then id', () => {
 test('hidden ending wins by priority and finalize stores immutable result', () => {
   const life = sampleLife();
   life.history.flags.hidden_ending_unlocked = true;
-  const metrics = calculateDerivedMetrics(life, registry);
+  const metrics = calculateDerivedMetrics(life, registry, dsl);
   const finalized = finalizeLife(life, metrics, endings);
   assert.equal(finalized.alive, false);
   assert.equal(finalized.ending.primaryEnding, 'hidden_rare');
@@ -77,7 +84,7 @@ test('unknown ending metric fails instead of defaulting to zero', () => {
   const life = sampleLife();
   const bad = structuredClone(endings);
   bad.primaryEndings[0].conditions.metricMin.unknownMetric = 1;
-  const metrics = calculateDerivedMetrics(life, registry);
+  const metrics = calculateDerivedMetrics(life, registry, dsl);
   assert.throws(() => resolveEnding(life, metrics, bad), /Unknown ending metric/);
 });
 
