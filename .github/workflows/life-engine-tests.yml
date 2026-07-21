@@ -4,12 +4,14 @@ on:
   push:
     branches: [main]
     paths:
+      - 'life-sim.html'
       - 'js/life-*.js'
       - 'data/life-*.json'
       - 'tests/life-*.test.mjs'
       - '.github/workflows/life-engine-tests.yml'
   pull_request:
     paths:
+      - 'life-sim.html'
       - 'js/life-*.js'
       - 'data/life-*.json'
       - 'tests/life-*.test.mjs'
@@ -38,3 +40,5 @@ jobs:
         run: node tests/life-save-achievement-v3.test.mjs
       - name: Test Deterministic Simulation
         run: node tests/life-simulation-v3.test.mjs
+      - name: Test UI View Models
+        run: node tests/life-ui-model-v3.test.mjs
