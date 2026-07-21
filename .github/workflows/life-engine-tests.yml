@@ -4,21 +4,13 @@ on:
   push:
     branches: [main]
     paths:
-      - 'js/life-engine-v3.js'
-      - 'js/life-event-engine-v3.js'
-      - 'js/life-romance-engine-v3.js'
-      - 'js/life-metric-engine-v3.js'
-      - 'js/life-ending-engine-v3.js'
+      - 'js/life-*.js'
       - 'data/life-*.json'
       - 'tests/life-*.test.mjs'
       - '.github/workflows/life-engine-tests.yml'
   pull_request:
     paths:
-      - 'js/life-engine-v3.js'
-      - 'js/life-event-engine-v3.js'
-      - 'js/life-romance-engine-v3.js'
-      - 'js/life-metric-engine-v3.js'
-      - 'js/life-ending-engine-v3.js'
+      - 'js/life-*.js'
       - 'data/life-*.json'
       - 'tests/life-*.test.mjs'
       - '.github/workflows/life-engine-tests.yml'
@@ -42,3 +34,5 @@ jobs:
         run: node tests/life-romance-engine-v3.test.mjs
       - name: Test Metric and Ending Engines
         run: node tests/life-metric-ending-v3.test.mjs
+      - name: Test Save Archive and Achievements
+        run: node tests/life-save-achievement-v3.test.mjs
