@@ -1,0 +1,14 @@
+[
+  {"id":"first_life","title":"第一段人生","description":"完成并归档第一段人生。","conditions":{"min":{"save.archiveCount":1}}},
+  {"id":"five_lives","title":"人生观察者","description":"完成五段人生。","conditions":{"min":{"save.archiveCount":5}}},
+  {"id":"ten_lives","title":"重开熟手","description":"完成十段人生。","conditions":{"min":{"save.archiveCount":10}}},
+  {"id":"many_endings","title":"不同道路","description":"收集五种不同主结局。","conditions":{"min":{"save.uniqueEndingCount":5}}},
+  {"id":"high_score","title":"充实人生","description":"单段人生总分达到八十分。","conditions":{"min":{"life.score":80}}},
+  {"id":"long_life","title":"岁月悠长","description":"活到八十五岁。","conditions":{"min":{"life.ageYears":85}}},
+  {"id":"family_harmony","title":"家人相伴","description":"获得家庭和睦标签。","conditions":{"includes":{"life.secondaryTags":["family_harmony"]}}},
+  {"id":"lifelong_learner","title":"终身学习","description":"获得终身学习标签。","conditions":{"includes":{"life.secondaryTags":["lifelong_learner"]}}},
+  {"id":"financial_freedom","title":"财务自由","description":"达成财务自由主结局。","conditions":{"equals":{"life.endingId":"financial_freedom"}}},
+  {"id":"public_legacy","title":"留下影响","description":"获得公共贡献遗产标签。","conditions":{"includes":{"life.secondaryTags":["public_legacy"]}}},
+  {"id":"hidden_ending","title":"罕见人生","description":"发现隐藏结局。","conditions":{"equals":{"life.endingId":"hidden_rare"}}},
+  {"id":"parenthood","title":"新的责任","description":"拥有孩子。","conditions":{"min":{"life.childrenCount":1}}}
+]
