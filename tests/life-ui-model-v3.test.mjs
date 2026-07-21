@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createLifeStateV3 } from '../js/life-engine-v3.js';
-import { activeRelationship, avatarSvg, derivedClock, eventView, metricRows, profileView, timelineRows } from '../js/life-ui-model-v3.js';
+import { activeRelationship, avatarSvg, derivedClock, eventView, generatedChineseIdentity, metricRows, profileView, timelineRows, zodiacName } from '../js/life-ui-model-v3.js';
 
 const tests = [];
 const test = (name, fn) => tests.push({ name, fn });
@@ -45,6 +45,23 @@ test('profile and core conditions use player-readable language instead of intern
   const rows = metricRows(life);
   assert.deepEqual(rows.map((row) => row.status), ['状态良好', '心情愉快', '思维敏锐', '自律一般', '压力较低']);
   assert.equal(rows.some((row) => Object.hasOwn(row, 'value')), false);
+});
+
+test('generated identity uses a formal Chinese name and exposes gender and zodiac', () => {
+  const identity = generatedChineseIdentity(1571);
+  assert.match(identity.name, /^[\u4e00-\u9fff]{2,4}$/);
+  assert.ok(['男','女'].includes(identity.gender));
+  assert.ok(Number.isInteger(identity.birthMonth) && identity.birthMonth >= 1 && identity.birthMonth <= 12);
+  assert.ok(Number.isInteger(identity.birthDay) && identity.birthDay >= 1 && identity.birthDay <= 28);
+  assert.equal(generatedChineseIdentity(1571), generatedChineseIdentity(1571));
+
+  const life = createLifeStateV3({ name:identity.name, seed:1571 });
+  life.identity.gender = identity.gender;
+  life.identity.birthMonth = identity.birthMonth;
+  life.identity.birthDay = identity.birthDay;
+  const profile = profileView(life);
+  assert.equal(profile.gender, identity.gender);
+  assert.equal(profile.zodiac, zodiacName(identity.birthMonth, identity.birthDay));
 });
 
 test('active relationship follows romance context', () => {
