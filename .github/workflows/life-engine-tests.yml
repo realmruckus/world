@@ -32,6 +32,8 @@ jobs:
         run: node tests/life-sim-page-v3.test.mjs
       - name: Test Life Engine Core
         run: node tests/life-engine-v3.test.mjs
+      - name: Test Experience Instance Identity
+        run: node tests/life-experience-identity-v3.test.mjs
       - name: Test Annual Event Vertical Slice
         run: node tests/life-event-engine-v3.test.mjs
       - name: Test Romance Stage Vertical Slice
