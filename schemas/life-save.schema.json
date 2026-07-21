@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://world.realmruckus.com/schemas/life-save.schema.json",
-  "title": "WORLD Life Simulation Local Save v1",
+  "title": "WORLD Life Simulation Local Save v2",
   "type": "object",
   "additionalProperties": false,
   "required": ["schemaVersion", "appVersion", "savedAt", "currentLife", "archives", "achievements", "settings"],
   "properties": {
-    "schemaVersion": { "const": 1 },
+    "schemaVersion": { "const": 2 },
     "appVersion": { "type": "string" },
     "savedAt": { "type": "string", "format": "date-time" },
     "currentLife": { "anyOf": [{ "$ref": "#/$defs/life" }, { "type": "null" }] },
@@ -27,7 +27,7 @@
     "life": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "seed", "createdAt", "identity", "age", "alive", "stats", "resources", "relationships", "tags", "flags", "experiences", "timeline", "cooldowns", "scheduled", "rngCursor"],
+      "required": ["id", "seed", "createdAt", "identity", "clock", "alive", "stats", "resources", "relationships", "tags", "flags", "experiences", "timeline", "cooldowns", "scheduled", "rngCursor"],
       "properties": {
         "id": { "type": "string" },
         "seed": { "type": "integer" },
@@ -50,7 +50,29 @@
             "housingStatus": { "type": "string" }
           }
         },
-        "age": { "type": "integer", "minimum": 0, "maximum": 130 },
+        "clock": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["ageYears", "weekOfYear", "totalWeeks", "stage", "timeScale", "stageWeek"],
+          "properties": {
+            "ageYears": { "type": "integer", "minimum": 0, "maximum": 130 },
+            "weekOfYear": { "type": "integer", "minimum": 0, "maximum": 51 },
+            "totalWeeks": { "type": "integer", "minimum": 0, "maximum": 6760 },
+            "stage": { "enum": ["life", "romance"] },
+            "timeScale": { "enum": ["year", "week"] },
+            "stageWeek": { "type": "integer", "minimum": 0, "maximum": 5200 }
+          },
+          "allOf": [
+            {
+              "if": { "properties": { "stage": { "const": "life" } }, "required": ["stage"] },
+              "then": { "properties": { "timeScale": { "const": "year" }, "stageWeek": { "const": 0 } } }
+            },
+            {
+              "if": { "properties": { "stage": { "const": "romance" } }, "required": ["stage"] },
+              "then": { "properties": { "timeScale": { "const": "week" } } }
+            }
+          ]
+        },
         "alive": { "type": "boolean" },
         "stats": { "$ref": "#/$defs/numberMap" },
         "resources": { "$ref": "#/$defs/numberMap" },
@@ -59,10 +81,19 @@
         "flags": { "type": "object", "additionalProperties": true },
         "experiences": { "type": "array", "items": { "$ref": "#/$defs/experience" } },
         "timeline": { "type": "array", "items": { "$ref": "#/$defs/timelineEntry" } },
-        "cooldowns": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
+        "cooldowns": { "type": "object", "additionalProperties": { "$ref": "#/$defs/duration" } },
         "scheduled": { "type": "array", "items": { "$ref": "#/$defs/scheduled" } },
         "pendingEvent": { "anyOf": [{ "type": "object" }, { "type": "null" }] },
         "ending": { "anyOf": [{ "type": "object" }, { "type": "null" }] }
+      }
+    },
+    "duration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["remaining", "unit"],
+      "properties": {
+        "remaining": { "type": "integer", "minimum": 0, "maximum": 5200 },
+        "unit": { "enum": ["year", "week"] }
       }
     },
     "relationship": {
@@ -83,22 +114,27 @@
     },
     "experience": {
       "type": "object",
-      "required": ["id", "type", "age", "title"],
+      "required": ["id", "type", "ageYears", "title"],
       "properties": {
         "id": { "type": "string" },
         "type": { "type": "string" },
-        "age": { "type": "integer" },
+        "ageYears": { "type": "integer" },
+        "weekOfYear": { "type": "integer", "minimum": 0, "maximum": 51 },
         "title": { "type": "string" },
         "data": { "type": "object" }
       }
     },
     "timelineEntry": {
       "type": "object",
-      "required": ["id", "age", "year", "kind", "title", "summary"],
+      "required": ["id", "ageYears", "weekOfYear", "year", "stage", "timeScale", "kind", "title", "summary"],
       "properties": {
         "id": { "type": "string" },
-        "age": { "type": "integer" },
+        "ageYears": { "type": "integer" },
+        "weekOfYear": { "type": "integer", "minimum": 0, "maximum": 51 },
         "year": { "type": "integer" },
+        "stage": { "enum": ["life", "romance"] },
+        "timeScale": { "enum": ["year", "week"] },
+        "stageWeek": { "type": "integer", "minimum": 0 },
         "kind": { "type": "string" },
         "eventId": { "type": "string" },
         "choiceId": { "type": "string" },
@@ -109,21 +145,21 @@
     },
     "scheduled": {
       "type": "object",
-      "required": ["id", "dueAge", "kind", "payload"],
+      "required": ["id", "dueAtTotalWeeks", "kind", "payload"],
       "properties": {
         "id": { "type": "string" },
-        "dueAge": { "type": "integer" },
+        "dueAtTotalWeeks": { "type": "integer", "minimum": 0, "maximum": 6760 },
         "kind": { "enum": ["event", "effects"] },
         "payload": { "type": "object" }
       }
     },
     "archive": {
       "type": "object",
-      "required": ["lifeId", "name", "age", "endingId", "score", "endedAt", "summaryTags"],
+      "required": ["lifeId", "name", "ageYears", "endingId", "score", "endedAt", "summaryTags"],
       "properties": {
         "lifeId": { "type": "string" },
         "name": { "type": "string" },
-        "age": { "type": "integer" },
+        "ageYears": { "type": "integer" },
         "endingId": { "type": "string" },
         "deathCauseId": { "type": "string" },
         "score": { "type": "integer", "minimum": 0, "maximum": 100 },
