@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import {
   advanceClock, applyCommandsAtomic, createLifeStateV3, deriveClock,
-  migrateSaveV2ToV3, validateLifeState,
+  evaluateRelationshipTransition, migrateSaveV2ToV3,
+  relationshipHardLimitReached, validateLifeState,
 } from '../js/life-engine-v3.js';
 
+const relationshipRules = JSON.parse(fs.readFileSync(new URL('../data/life-relationship-rules.json', import.meta.url), 'utf8'));
 const tests = [];
 const test = (name, fn) => tests.push({ name, fn });
 
@@ -94,6 +97,34 @@ test('v2 migration is deterministic and preserves history', () => {
   assert.equal(a.currentLife.relationships[0].id, 'relationship-old-0');
   assert.equal(a.currentLife.mind.smarts, 80);
   assert.equal(a.currentLife.history.experiences[0].title, '毕业');
+});
+test('relationship transition requires registered intent and thresholds', () => {
+  const relationship = {
+    status: 'dating',
+    dimensions: { attraction: 70, love: 60, trust: 55, conflict: 20, dependence: 20, respect: 50, passion: 60, commitment: 40 },
+  };
+  assert.equal(evaluateRelationshipTransition(relationship, 'become_exclusive', 'exclusive', relationshipRules).allowed, true);
+  relationship.dimensions.trust = 20;
+  assert.match(evaluateRelationshipTransition(relationship, 'become_exclusive', 'exclusive', relationshipRules).reason, /minimum_not_met:trust/);
+});
+test('relationship transition command rejects invalid skip and commits valid transition', () => {
+  const life = createLifeStateV3({ seed: 14 });
+  const withRelationship = applyCommandsAtomic(life, [{
+    op: 'CreateRelationship', relationshipId: 'r1', role: 'partner_candidate', name: '对象', targetStatus: 'dating',
+    dimensions: { attraction: 70, love: 60, trust: 55, conflict: 20, dependence: 20, respect: 50, passion: 60, commitment: 40 },
+  }], { advanceTime: false });
+  assert.throws(() => applyCommandsAtomic(withRelationship, [{
+    op: 'RequestRelationshipTransition', relationshipId: 'r1', intent: 'get_married', targetStatus: 'married',
+  }], { advanceTime: false, relationshipRules }), /transition_not_registered/);
+  const exclusive = applyCommandsAtomic(withRelationship, [{
+    op: 'RequestRelationshipTransition', relationshipId: 'r1', intent: 'become_exclusive', targetStatus: 'exclusive',
+  }], { advanceTime: false, relationshipRules });
+  assert.equal(exclusive.relationships[0].status, 'exclusive');
+});
+test('relationship hard limit uses canonical stage weeks', () => {
+  const life = createLifeStateV3({ seed: 15 });
+  life.clock = { totalWeeks: 152, stage: 'romance', stageStartedAtWeeks: 100 };
+  assert.equal(relationshipHardLimitReached(life, relationshipRules), true);
 });
 
 let passed = 0;
