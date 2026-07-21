@@ -28,6 +28,25 @@ test('metric, timeline and event models are display ready', () => {
   assert.equal(eventView(life).choices[0].label, '选择');
 });
 
+test('profile and core conditions use player-readable language instead of internal ids or raw scores', () => {
+  const life = createLifeStateV3({ name:'界行者', seed:12 });
+  life.career.educationId = 'college';
+  life.career.id = 'starter_job';
+  life.health.health = 70;
+  life.mind.happiness = 82;
+  life.mind.smarts = 85;
+  life.mind.discipline = 50;
+  life.mind.stress = 23;
+
+  const profile = profileView(life);
+  assert.equal(profile.education, '大学阶段');
+  assert.equal(profile.career, '职场起步');
+
+  const rows = metricRows(life);
+  assert.deepEqual(rows.map((row) => row.status), ['状态良好', '心情愉快', '思维敏锐', '自律一般', '压力较低']);
+  assert.equal(rows.some((row) => Object.hasOwn(row, 'value')), false);
+});
+
 test('active relationship follows romance context', () => {
   const life = createLifeStateV3({ seed:1 });
   life.relationships.push({ id:'r1', name:'林遥', role:'partner_candidate', status:'dating', dimensions:{}, relationshipStartedAtWeeks:0, statusChangedAtWeeks:0, sharedExperiences:[] });
