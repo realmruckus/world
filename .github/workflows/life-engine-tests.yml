@@ -28,6 +28,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Test Full-screen Page Contract
+        run: node tests/life-sim-page-v3.test.mjs
       - name: Test Life Engine Core
         run: node tests/life-engine-v3.test.mjs
       - name: Test Annual Event Vertical Slice
@@ -42,5 +44,3 @@ jobs:
         run: node tests/life-simulation-v3.test.mjs
       - name: Test UI View Models
         run: node tests/life-ui-model-v3.test.mjs
-      - name: Test Full-screen Page Contract
-        run: node tests/life-sim-page-v3.test.mjs
