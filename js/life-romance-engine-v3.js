@@ -94,7 +94,7 @@ export function resolveRomanceChoice(life, choiceId, relationshipRules) {
   }
 
   const relationship = activeRomanceRelationship(resolved);
-  const terminal = !relationship || ['married','broken_up','no_contact'].includes(relationship.status);
+  const terminal = !relationship || ['married','paused','broken_up','no_contact'].includes(relationship.status);
   if (terminal && resolved.clock.stage === 'romance') return exitRomanceStage(resolved);
   return resolved;
 }
