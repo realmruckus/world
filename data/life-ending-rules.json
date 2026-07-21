@@ -1,73 +1,53 @@
 {
-  "schemaVersion": 2,
-  "clock": {
-    "canonical": "totalWeeks",
-    "ageYearsFormula": "floor(totalWeeks / 52)"
-  },
+  "schemaVersion": 3,
+  "metricRegistry": "./life-derived-metrics.json",
+  "unknownMetricPolicy": "error",
   "selection": {
     "mode": "highest_priority_then_score_then_id",
     "deathCauseResolvedFirst": true,
     "primaryEndingCount": 1,
     "secondaryTagLimit": 6
   },
-  "metricDefinitions": {
-    "businessSuccess": "normalized entrepreneurship experience, business assets, and sustained profit",
-    "peopleHelped": "count of unique experiences tagged helped_person",
-    "familyStability": "active family relationship support minus conflict and rupture penalties",
-    "partnerCloseness": "closeness of current or last long-term partner",
-    "relationshipYears": "accumulated long-term partner weeks divided by 52",
-    "lifeVariety": "normalized unique coverage of experience types, careers, regions, and major activities",
-    "lateLifeGrowth": "normalized positive change after age 50",
-    "turningPoints": "count of unique experiences tagged turning_point",
-    "unresolvedGoals": "active goals without matching completed goals",
-    "loneliness": "100 minus effective close-relationship support",
-    "careerChanges": "count of experiences tagged career_change",
-    "educationEvents": "count of experiences tagged education_growth",
-    "riskTurns": "count of experiences tagged risk_choice",
-    "recoveryTurns": "count of experiences tagged recovery",
-    "peakWealth": "normalized historical maximum net assets",
-    "largestLoss": "normalized largest peak-to-trough net-asset loss"
-  },
   "deathCauses": [
     { "id": "old_age", "priority": 100, "conditions": { "ageYearsMin": 80 } },
-    { "id": "health_failure", "priority": 200, "conditions": { "healthMax": 0 } },
+    { "id": "health_failure", "priority": 200, "conditions": { "metricMax": { "health": 0 } } },
     { "id": "illness", "priority": 150, "conditions": { "requiredTags": ["serious_illness"] } },
     { "id": "accident", "priority": 300, "conditions": { "requiredFlags": ["fatal_accident"] } },
     { "id": "other", "priority": 0, "conditions": {} }
   ],
   "primaryEndings": [
-    { "id": "career_peak", "priority": 900, "score": { "careerLevel": 40, "reputation": 20, "wealth": 10 }, "conditions": { "careerLevelMin": 8, "reputationMin": 75 } },
-    { "id": "entrepreneur_legend", "priority": 890, "score": { "businessSuccess": 45, "wealth": 20, "riskTurns": 10 }, "conditions": { "requiredTags": ["entrepreneur"], "businessSuccessMin": 80 } },
-    { "id": "financial_freedom", "priority": 880, "score": { "financialSecurity": 45, "assets": 20, "debt": -20 }, "conditions": { "financialSecurityMin": 85, "debtMax": 0 } },
-    { "id": "teacher_legacy", "priority": 860, "score": { "peopleHelped": 35, "reputation": 15, "empathy": 15 }, "conditions": { "peopleHelpedMin": 30 } },
-    { "id": "family_anchor", "priority": 840, "score": { "familyStability": 40, "familyCloseness": 25, "careYears": 10 }, "conditions": { "familyStabilityMin": 75 } },
-    { "id": "lifelong_love", "priority": 830, "score": { "partnerCloseness": 50, "relationshipYears": 20, "conflict": -10 }, "conditions": { "partnerClosenessMin": 85, "relationshipYearsMin": 30 } },
-    { "id": "creative_legacy", "priority": 820, "score": { "creativeWorks": 35, "smarts": 15, "reputation": 20 }, "conditions": { "creativeWorksMin": 5 } },
-    { "id": "public_contribution", "priority": 810, "score": { "publicContribution": 50, "reputation": 20, "empathy": 10 }, "conditions": { "publicContributionMin": 75 } },
-    { "id": "free_spirit", "priority": 700, "score": { "lifeVariety": 30, "happiness": 25, "riskTurns": 10 }, "conditions": { "lifeVarietyMin": 70 } },
-    { "id": "second_chance", "priority": 690, "score": { "recoveryTurns": 35, "lateLifeGrowth": 30, "happiness": 15 }, "conditions": { "recoveryTurnsMin": 2, "lateLifeGrowthMin": 50 } },
-    { "id": "rise_and_fall", "priority": 650, "score": { "peakWealth": 25, "largestLoss": 30, "turningPoints": 15 }, "conditions": { "largestLossMin": 70, "peakWealthMin": 70 } },
-    { "id": "debt_life", "priority": 640, "score": { "debt": 45, "financialStress": 30, "bankruptcies": 20 }, "conditions": { "debtMin": 100000 } },
-    { "id": "lonely_later_life", "priority": 630, "score": { "loneliness": 40, "relationshipLosses": 20, "familyCloseness": -20 }, "conditions": { "lonelinessMin": 80 } },
-    { "id": "unfinished_path", "priority": 620, "score": { "unresolvedGoals": 35, "turningPoints": 10 }, "conditions": { "ageYearsMax": 45 } },
-    { "id": "ordinary_complete", "priority": 100, "score": { "happiness": 25, "health": 15, "familyStability": 15, "financialSecurity": 15, "ageYears": 10 }, "conditions": {} },
-    { "id": "hidden_rare", "priority": 1000, "score": { "hiddenEndingScore": 100 }, "conditions": { "requiredFlags": ["hidden_ending_unlocked"] } }
+    { "id": "career_peak", "priority": 900, "score": { "achievement": 0.70, "legacy": 0.30 }, "conditions": { "metricMin": { "achievement": 82 } } },
+    { "id": "financial_freedom", "priority": 880, "score": { "money": 0.75, "freedom": 0.25 }, "conditions": { "metricMin": { "money": 85, "freedom": 60 } } },
+    { "id": "family_anchor", "priority": 840, "score": { "relationship": 0.75, "legacy": 0.25 }, "conditions": { "metricMin": { "relationship": 82 } } },
+    { "id": "lifelong_love", "priority": 830, "score": { "relationship": 0.80, "health": 0.20 }, "conditions": { "metricMin": { "relationship": 88 }, "requiredTags": ["long_term_partner"] } },
+    { "id": "creative_legacy", "priority": 820, "score": { "knowledge": 0.35, "legacy": 0.65 }, "conditions": { "metricMin": { "legacy": 75 }, "requiredTags": ["creator"] } },
+    { "id": "public_contribution", "priority": 810, "score": { "contribution": 0.75, "legacy": 0.25 }, "conditions": { "metricMin": { "contribution": 80 } } },
+    { "id": "free_spirit", "priority": 700, "score": { "freedom": 0.55, "adventure": 0.45 }, "conditions": { "metricMin": { "freedom": 70, "adventure": 65 } } },
+    { "id": "second_chance", "priority": 690, "score": { "achievement": 0.30, "health": 0.25, "relationship": 0.25, "freedom": 0.20 }, "conditions": { "requiredTags": ["recovered"] } },
+    { "id": "rise_and_fall", "priority": 650, "score": { "achievement": 0.45, "money": 0.35, "adventure": 0.20 }, "conditions": { "requiredTags": ["major_loss"] } },
+    { "id": "debt_life", "priority": 640, "score": { "money": -0.70, "health": -0.30 }, "conditions": { "metricMax": { "money": 20 } } },
+    { "id": "lonely_later_life", "priority": 630, "score": { "relationship": -0.75, "health": 0.25 }, "conditions": { "metricMax": { "relationship": 20 }, "ageYearsMin": 60 } },
+    { "id": "unfinished_path", "priority": 620, "score": { "achievement": 0.50, "knowledge": 0.25, "adventure": 0.25 }, "conditions": { "ageYearsMax": 45 } },
+    { "id": "ordinary_complete", "priority": 100, "score": { "health": 0.20, "relationship": 0.25, "achievement": 0.15, "money": 0.15, "freedom": 0.10, "legacy": 0.15 }, "conditions": {} },
+    { "id": "hidden_rare", "priority": 1000, "score": { "legacy": 0.50, "knowledge": 0.25, "adventure": 0.25 }, "conditions": { "requiredFlags": ["hidden_ending_unlocked"] } }
   ],
   "secondaryTags": [
-    { "id": "healthy_longevity", "conditions": { "ageYearsMin": 85, "healthMin": 60 } },
-    { "id": "family_harmony", "conditions": { "familyClosenessMin": 80 } },
-    { "id": "many_friends", "conditions": { "friendCountMin": 8, "friendClosenessMin": 70 } },
-    { "id": "debt_burden", "conditions": { "debtMin": 1 } },
-    { "id": "career_changer", "conditions": { "careerChangesMin": 4 } },
-    { "id": "adventurer", "conditions": { "riskTurnsMin": 8 } },
-    { "id": "lifelong_learner", "conditions": { "educationEventsMin": 8 } },
-    { "id": "late_bloomer", "conditions": { "lateLifeGrowthMin": 60 } }
+    { "id": "healthy_longevity", "conditions": { "ageYearsMin": 85, "metricMin": { "health": 65 } } },
+    { "id": "family_harmony", "conditions": { "metricMin": { "relationship": 80 } } },
+    { "id": "financially_secure", "conditions": { "metricMin": { "money": 75 } } },
+    { "id": "adventurer", "conditions": { "metricMin": { "adventure": 75 } } },
+    { "id": "lifelong_learner", "conditions": { "metricMin": { "knowledge": 80 } } },
+    { "id": "public_legacy", "conditions": { "metricMin": { "contribution": 75, "legacy": 70 } } }
   ],
-  "scoreWeights": {
-    "wellbeing": 0.25,
-    "relationships": 0.25,
-    "growth": 0.2,
-    "stability": 0.15,
-    "legacy": 0.15
+  "lifeScoreWeights": {
+    "health": 0.15,
+    "relationship": 0.20,
+    "achievement": 0.15,
+    "money": 0.10,
+    "legacy": 0.15,
+    "freedom": 0.10,
+    "knowledge": 0.05,
+    "contribution": 0.05,
+    "adventure": 0.05
   }
 }
