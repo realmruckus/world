@@ -53,7 +53,7 @@ test('generated identity uses a formal Chinese name and exposes gender and zodia
   assert.ok(['男','女'].includes(identity.gender));
   assert.ok(Number.isInteger(identity.birthMonth) && identity.birthMonth >= 1 && identity.birthMonth <= 12);
   assert.ok(Number.isInteger(identity.birthDay) && identity.birthDay >= 1 && identity.birthDay <= 28);
-  assert.equal(generatedChineseIdentity(1571), generatedChineseIdentity(1571));
+  assert.deepEqual(generatedChineseIdentity(1571), generatedChineseIdentity(1571));
 
   const life = createLifeStateV3({ name:identity.name, seed:1571 });
   life.identity.gender = identity.gender;
