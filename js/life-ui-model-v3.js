@@ -13,6 +13,10 @@ const eventTypeNames = {
   social:'人际关系', romance:'感情发展', crisis:'突发状况', opportunity:'人生机会', lifestyle:'生活方式',
 };
 
+const surnames = ['赵','钱','孙','李','周','吴','郑','王','冯','陈','褚','卫','蒋','沈','韩','杨','朱','秦','许','何','吕','施','张','孔','曹','严','华','金','魏','陶','姜','谢','邹','苏','潘','杜','叶','程','林','罗','高','郭'];
+const givenFirst = ['子','宇','嘉','思','明','安','景','云','泽','书','亦','承','若','知','星','清','梓','雨','昕','锦','文','浩','宁','语','晨','奕','晓','沐','庭','俊'];
+const givenSecond = ['涵','然','轩','妍','辰','宁','瑶','川','琪','远','菲','航','悦','桐','熙','诚','萱','阳','琳','哲','岚','睿','佳','彤','博','晴','凡','君','翊','衡'];
+
 function readableId(value, names, fallback) {
   if (!value || value === 'none') return fallback;
   if (names[value]) return names[value];
@@ -22,6 +26,32 @@ function readableId(value, names, fallback) {
 function level(value, bands) {
   const score = Math.max(0, Math.min(100, Number(value || 0)));
   return bands.find(({ max }) => score <= max)?.label || bands.at(-1).label;
+}
+
+function pick(list, seed, offset) {
+  const value = Math.abs((Number(seed) * (offset * 2654435761 + 97)) >>> 0);
+  return list[value % list.length];
+}
+
+export function generatedChineseIdentity(seed) {
+  const value = Number(seed) >>> 0;
+  const surname = pick(surnames, value, 1);
+  const first = pick(givenFirst, value, 2);
+  const useTwoGivenNames = value % 5 !== 0;
+  const second = useTwoGivenNames ? pick(givenSecond, value, 3) : '';
+  return {
+    name: `${surname}${first}${second}`,
+    gender: value % 2 === 0 ? '女' : '男',
+    birthMonth: value % 12 + 1,
+    birthDay: Math.floor(value / 12) % 28 + 1,
+  };
+}
+
+export function zodiacName(month, day) {
+  const boundary = [20,19,21,20,21,22,23,23,23,24,23,22];
+  const names = ['摩羯座','水瓶座','双鱼座','白羊座','金牛座','双子座','巨蟹座','狮子座','处女座','天秤座','天蝎座','射手座','摩羯座'];
+  const index = Number(day) < boundary[Number(month) - 1] ? Number(month) - 1 : Number(month);
+  return names[index] || '未知星座';
 }
 
 export function derivedClock(life) {
@@ -44,13 +74,20 @@ export function avatarSvg(life) {
 
 export function profileView(life) {
   const clock = derivedClock(life);
+  const identity = life.identity || {};
+  const fallback = generatedChineseIdentity(life.seed || 0);
+  const birthMonth = Number(identity.birthMonth || fallback.birthMonth);
+  const birthDay = Number(identity.birthDay || fallback.birthDay);
   return {
-    name: life.identity.name,
+    name: identity.name,
     ageLabel: life.alive === false ? '人生档案已封存' : `${clock.ageYears} 岁 · 第 ${clock.weekOfYear + 1} 周`,
     stageLabel: life.clock.stage === 'romance' ? '恋爱阶段' : '人生阶段',
-    location: life.location?.name || life.identity.region,
+    location: life.location?.name || identity.region,
     education: readableId(life.career.educationId, educationNames, '尚未入学'),
     career: readableId(life.career.id, careerNames, '尚未工作'),
+    gender: identity.gender || fallback.gender,
+    zodiac: zodiacName(birthMonth, birthDay),
+    birthdayLabel: `${birthMonth}月${birthDay}日`,
     avatar: avatarSvg(life),
   };
 }
