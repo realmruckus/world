@@ -42,3 +42,5 @@ jobs:
         run: node tests/life-simulation-v3.test.mjs
       - name: Test UI View Models
         run: node tests/life-ui-model-v3.test.mjs
+      - name: Test Full-screen Page Contract
+        run: node tests/life-sim-page-v3.test.mjs
