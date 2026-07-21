@@ -29,6 +29,13 @@ test('mobile controls keep readable contrast and stable touch targets', () => {
   assert.match(html, /grid-template-rows:minmax\(0,1fr\) minmax\(260px,44dvh\)/);
 });
 
+test('mobile choice controls remain reachable above the browser chrome', () => {
+  assert.match(html, /#event-panel\{[^}]*overflow:hidden/);
+  assert.match(html, /\.choice-list\{[^}]*overflow-y:auto/);
+  assert.match(html, /\.choice-list\{[^}]*min-height:0/);
+  assert.match(html, /\.choice-list\{[^}]*padding-bottom:calc\([^)]*env\(safe-area-inset-bottom\)/);
+});
+
 let passed = 0;
 for (const { name, fn } of tests) {
   try { await fn(); passed += 1; console.log(`✓ ${name}`); }
