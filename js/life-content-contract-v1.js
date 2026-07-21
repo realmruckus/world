@@ -74,8 +74,12 @@ function validateSchemaNode(value, definition, path, root) {
   return true;
 }
 
+export function validateJsonSchema(value, jsonSchema = schema) {
+  return validateSchemaNode(value, jsonSchema, '$', jsonSchema);
+}
+
 export function validateLifeContentSchema(content) {
-  return validateSchemaNode(content, schema, '$', schema);
+  return validateJsonSchema(content, schema);
 }
 
 function assertObject(value, label) {
