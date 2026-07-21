@@ -1,5 +1,6 @@
 const clamp = (value) => Math.max(0, Math.min(100, value));
 const getPath = (object, path) => path.split('.').reduce((current, key) => current?.[key], object);
+const ACTIVE_SUPPORT_STATUSES = new Set(['active','potential','dating','exclusive','cohabiting','engaged','married','paused']);
 
 function tokenize(input) {
   const tokens = [];
@@ -62,8 +63,9 @@ function parser(tokens) {
   return ast;
 }
 
-const experienceTags = (experiences, tag) => new Set((experiences || []).filter((item) => (item.tags || []).includes(tag)).map((item) => item.id || item.title)).size;
+const experienceTags = (experiences, tag) => new Set((experiences || []).filter((item) => (item.tags || []).includes(tag)).map((item) => item.definitionId || item.id || item.title)).size;
 const relationshipsByRole = (relationships, role) => (relationships || []).filter((item) => item.role === role || (role === 'partner' && item.role === 'partner_candidate'));
+const supportRelationshipsByRole = (relationships, role) => relationshipsByRole(relationships, role).filter((item) => ACTIVE_SUPPORT_STATUSES.has(item.status));
 const maxSafeLog = (value, max) => clamp(100 * Math.log1p(Math.max(0, value)) / Math.log1p(max));
 
 function functions() {
@@ -71,7 +73,8 @@ function functions() {
     clamp, min: (...values) => Math.min(...values), max: (...values) => Math.max(...values),
     logNormalize: (value, min, max) => max <= min ? 0 : clamp(100 * Math.log1p(Math.max(0, value - min)) / Math.log1p(max - min)),
     countUniqueExperienceTag: experienceTags,
-    meanDimension: (relationships, role, dimension) => { const list = relationshipsByRole(relationships, role); return list.length ? list.reduce((sum, item) => sum + Number(item.dimensions?.[dimension] || 0), 0) / list.length : 0; },
+    meanDimension: (relationships, role, dimension) => { const list = supportRelationshipsByRole(relationships, role); return list.length ? list.reduce((sum, item) => sum + Number(item.dimensions?.[dimension] || 0), 0) / list.length : 0; },
+    hasActiveRelationship: (relationships, role) => supportRelationshipsByRole(relationships, role).length ? 1 : 0,
     countRelationshipRuptures: (relationships, role) => relationshipsByRole(relationships, role).filter((item) => ['estranged','broken_up','no_contact'].includes(item.status)).length,
     countRelationships: (relationships, role, status) => relationshipsByRole(relationships, role).filter((item) => item.status === status).length,
     uniqueExperienceTypeRatio: (experiences) => new Set((experiences || []).map((item) => item.type).filter(Boolean)).size / 14,
@@ -79,6 +82,12 @@ function functions() {
     uniqueRegionRatio: (timeline) => new Set((timeline || []).map((item) => item.regionId).filter(Boolean)).size / 5,
     uniqueMajorActivityRatio: (experiences) => experienceTags(experiences, 'major_activity') / 10,
     profitableYearsRatio: (timeline) => { const years = (timeline || []).filter((item) => item.timeScale === 'year'); return years.length ? years.filter((item) => Number(item.netIncome || 0) > 0).length / years.length : 0; },
+    incomeStabilityScore: (timeline, currentIncome) => {
+      const accountedYears = (timeline || []).filter((item) => item.timeScale === 'year' && Object.prototype.hasOwnProperty.call(item, 'netIncome'));
+      if (accountedYears.length) return clamp(accountedYears.filter((item) => Number(item.netIncome) > 0).length / accountedYears.length * 100);
+      const income = Number(currentIncome || 0);
+      return income > 0 ? clamp(50 + Math.min(50, income / 4000)) : 0;
+    },
     entrepreneurshipScore: (experiences) => clamp(experienceTags(experiences, 'entrepreneurship_progress') * 12),
     businessAssetScore: (finance) => maxSafeLog(finance?.businessAssets || 0, 5000000),
     profitableBusinessYearsRatio: (timeline) => { const years = (timeline || []).filter((item) => item.timeScale === 'year'); return years.length ? years.filter((item) => Number(item.businessProfit || 0) > 0).length / years.length : 0; },

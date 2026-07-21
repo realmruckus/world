@@ -91,6 +91,11 @@ function stableRelationshipId(lifeId, index) {
   return `relationship-${String(lifeId || 'life').replace(/[^a-zA-Z0-9_-]/g, '_')}-${index}`;
 }
 
+function stableExperienceInstanceId(life, definitionId) {
+  const safeDefinitionId = String(definitionId).replace(/[^a-zA-Z0-9_-]/g, '_');
+  return `${safeDefinitionId}-${life.clock.totalWeeks}-${life.history.experiences.length}`;
+}
+
 export function evaluateRelationshipTransition(relationship, intent, targetStatus, rules) {
   if (!rules || !Array.isArray(rules.transitions)) throw new Error('Relationship rules are required');
   const rule = rules.transitions.find((item) =>
@@ -201,10 +206,18 @@ function applyCommand(life, command, options) {
       relationship.statusChangedAtWeeks = life.clock.totalWeeks;
       return;
     }
-    case 'AppendExperience':
+    case 'AppendExperience': {
       if (!command.experience?.id || !command.experience?.type || !command.experience?.title) throw new Error('AppendExperience requires id, type and title');
-      life.history.experiences.push({ ...deepClone(command.experience), atTotalWeeks: life.clock.totalWeeks });
+      const experience = deepClone(command.experience);
+      const definitionId = experience.definitionId || experience.id;
+      life.history.experiences.push({
+        ...experience,
+        id: stableExperienceInstanceId(life, definitionId),
+        definitionId,
+        atTotalWeeks: life.clock.totalWeeks,
+      });
       return;
+    }
     case 'ScheduleEvent':
       if (!command.eventId || !command.after) throw new Error('ScheduleEvent requires eventId and after');
       life.history.scheduled.push({
