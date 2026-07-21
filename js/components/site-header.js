@@ -2,6 +2,7 @@ const siteRoot = new URL("../../", import.meta.url);
 
 const navigationItems = [
   ["play.html", "MVP"],
+  ["life-sim.html", "人生实验"],
   ["development-plan.html", "开发计划"],
   ["architecture.html", "架构"],
   ["docs/index.html", "设计文档"],
