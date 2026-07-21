@@ -2,6 +2,9 @@ import { applyCommandsAtomic, relationshipHardLimitReached } from './life-engine
 import { eligibleEvents, resolvePendingChoice, selectEventAtomic } from './life-event-engine-v3.js';
 
 const deepClone = (value) => structuredClone(value);
+const RELATIONSHIP_COMMANDS = new Set([
+  'CreateRelationship','ModifyRelationship','RequestRelationshipTransition','EndRelationship',
+]);
 
 function activeRomanceRelationship(life) {
   const preferredId = life.history.flags.activeRomanceRelationshipId;
@@ -11,6 +14,37 @@ function activeRomanceRelationship(life) {
   }
   return life.relationships.find((item) =>
     ['potential','dating','exclusive','cohabiting','engaged','paused'].includes(item.status));
+}
+
+function bindCommands(commands, relationshipId) {
+  return (commands || []).map((command) => {
+    const bound = deepClone(command);
+    if (RELATIONSHIP_COMMANDS.has(bound.op) && bound.op !== 'CreateRelationship') {
+      bound.relationshipId = relationshipId;
+    }
+    return bound;
+  });
+}
+
+function bindEventToActiveRelationship(event, relationshipId) {
+  const bound = deepClone(event);
+  bound.choices = bound.choices.map((choice) => ({
+    ...choice,
+    commands: bindCommands(choice.commands, relationshipId),
+    futureCommands: (choice.futureCommands || []).map((future) => ({
+      ...future,
+      commands: bindCommands(future.commands, relationshipId),
+    })),
+  }));
+  return bound;
+}
+
+function selectBoundEvent(life, pool, relationshipId) {
+  const selected = selectEventAtomic(life, pool);
+  if (selected.pendingEvent) {
+    selected.pendingEvent = bindEventToActiveRelationship(selected.pendingEvent, relationshipId);
+  }
+  return selected;
 }
 
 export function enterRomanceStage(life, relationshipId) {
@@ -47,19 +81,20 @@ function interruptPool(life, interruptEvents) {
 
 export function selectRomanceTurn(life, romanceEvents, interruptEvents, relationshipRules) {
   if (life.clock.stage !== 'romance') throw new Error('Romance turn requires romance stage');
-  if (!activeRomanceRelationship(life)) throw new Error('Romance stage requires an active relationship');
+  const activeRelationship = activeRomanceRelationship(life);
+  if (!activeRelationship) throw new Error('Romance stage requires an active relationship');
 
   const forcedResolution = hardLimitResolutionPool(life, romanceEvents, relationshipRules);
   if (relationshipHardLimitReached(life, relationshipRules)) {
     if (!forcedResolution.length) throw new Error('Romance hard limit reached without eligible resolution event');
-    return selectEventAtomic(life, forcedResolution);
+    return selectBoundEvent(life, forcedResolution, activeRelationship.id);
   }
 
   const interrupts = interruptPool(life, interruptEvents);
-  if (interrupts.length) return selectEventAtomic(life, interrupts);
+  if (interrupts.length) return selectBoundEvent(life, interrupts, activeRelationship.id);
 
   const romancePool = eligibleEvents(life, romanceEvents);
-  if (romancePool.length) return selectEventAtomic(life, romancePool);
+  if (romancePool.length) return selectBoundEvent(life, romancePool, activeRelationship.id);
 
   const quiet = deepClone(life);
   quiet.clock.totalWeeks += 1;
