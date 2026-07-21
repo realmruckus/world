@@ -31,6 +31,15 @@ function randomSeed() {
   return Math.floor((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0);
 }
 
+function applyGeneratedIdentity(life) {
+  const generated = generatedChineseIdentity(life.seed);
+  if (!life.identity.name || life.identity.name === '无名者' || /^界行者(?:\s|$)/.test(life.identity.name)) life.identity.name = generated.name;
+  if (!life.identity.gender) life.identity.gender = generated.gender;
+  if (!life.identity.birthMonth) life.identity.birthMonth = generated.birthMonth;
+  if (!life.identity.birthDay) life.identity.birthDay = generated.birthDay;
+  return life;
+}
+
 function createNewLife() {
   const seed = randomSeed();
   const identity = generatedChineseIdentity(seed);
@@ -61,8 +70,8 @@ function ensurePending(life) {
 
 function renderProfile(life) {
   const view = profileView(life);
-  $('#profile').innerHTML = `${view.avatar}<div><p class="eyebrow">${view.stageLabel} · ${view.ageLabel}</p><h1>${view.name}</h1><p>${view.gender} · ${view.zodiac} · ${view.birthdayLabel}</p><p>${view.location} · ${view.education} · ${view.career}</p></div>`;
-  $('#metrics').innerHTML = metricRows(life).map(({label,status}) => `<div class="life-status"><span>${label}</span><strong>${status}</strong></div>`).join('');
+  $('#profile').innerHTML = `${view.avatar}<div><p class="eyebrow">${view.stageLabel} · ${view.ageLabel}</p><h1>${view.name}</h1><p class="profile-meta"><span>${view.gender}</span><span>${view.zodiac}</span><span>${view.birthdayLabel}</span></p><p class="profile-meta"><span>${view.location}</span><span>${view.education}</span><span>${view.career}</span></p></div>`;
+  $('#metrics').innerHTML = metricRows(life).map(({label,status}) => `<div class="life-condition"><span>${label}</span><strong>${status}</strong></div>`).join('');
   const relationship = activeRelationship(life);
   $('#facts').innerHTML = `<li><span>现金</span><strong>¥${Math.round(life.finance.cash).toLocaleString('zh-CN')}</strong></li><li><span>资产 / 债务</span><strong>¥${Math.round(life.finance.assets).toLocaleString('zh-CN')} / ¥${Math.round(life.finance.debt).toLocaleString('zh-CN')}</strong></li><li><span>年收入</span><strong>¥${Math.round(life.finance.income).toLocaleString('zh-CN')}</strong></li><li><span>关系</span><strong>${relationship ? `${relationship.name} · ${relationshipNames[relationship.status] || relationship.status}` : '暂无重要伴侣关系'}</strong></li><li><span>人生标签</span><strong>${life.history.tags.join('、') || '尚未形成'}</strong></li>`;
 }
@@ -76,13 +85,14 @@ function renderEvent(life) {
   const panel = $('#event-panel');
   if (life.alive === false) {
     const ending = life.ending;
-    panel.innerHTML = `<p class="eyebrow">结局</p><h2>${endingNames[ending.primaryEnding] || ending.primaryEnding}</h2><p>这段人生已经结束。你可以封存档案，查看总分、结局标签和跨人生成就。</p><p class="life-score">人生评分 <strong>${ending.lifeScore}</strong></p><p>${(ending.secondaryTags || []).join(' · ') || '没有额外标签'}</p><button class="primary" id="archive-life" type="button">封存档案并重新投胎</button>`;
+    const evaluation = ending.lifeScore >= 80 ? '非常精彩' : ending.lifeScore >= 60 ? '充实完整' : ending.lifeScore >= 40 ? '平凡真实' : '留下遗憾';
+    panel.innerHTML = `<p class="eyebrow">人生结局</p><h2>${endingNames[ending.primaryEnding] || ending.primaryEnding}</h2><p>这段人生已经结束。你可以封存档案，查看人生总结和跨人生成就。</p><p class="life-score">人生评价 <strong>${evaluation}</strong></p><p>${(ending.secondaryTags || []).join(' · ') || '没有额外标签'}</p><button class="primary" id="archive-life" type="button">封存档案并重新投胎</button>`;
     $('#archive-life').addEventListener('click', archiveAndRestart);
     return;
   }
   const view = eventView(life);
   if (!view) {
-    panel.innerHTML = '<p class="eyebrow">载入中</p><h2>正在生成下一段人生</h2>';
+    panel.innerHTML = '<p class="eyebrow">正在准备</p><h2>正在生成下一段人生</h2>';
     return;
   }
   panel.innerHTML = `<span class="event-type">${view.type}</span><p class="event-caption">${view.caption}</p><h2>${view.title}</h2><p>${view.description}</p><div class="choice-list">${view.choices.map((choice) => `<button type="button" data-choice="${choice.id}"><strong>${choice.label}</strong><span>${choice.result}</span></button>`).join('')}</div>`;
@@ -90,13 +100,14 @@ function renderEvent(life) {
 }
 
 function renderMeta() {
-  $('#archives').innerHTML = state.save.archives.length ? state.save.archives.slice(0,8).map((life) => `<li><strong>${life.name}</strong><span>${life.ageYears} 岁 · ${endingNames[life.endingId] || life.endingId} · ${life.score} 分</span></li>`).join('') : '<li>还没有封存的人生。</li>';
+  $('#archives').innerHTML = state.save.archives.length ? state.save.archives.slice(0,8).map((life) => `<li><strong>${life.name}</strong><span>${life.ageYears} 岁 · ${endingNames[life.endingId] || life.endingId}</span></li>`).join('') : '<li>还没有封存的人生。</li>';
   $('#achievements').innerHTML = state.content.achievements.map((item) => `<li class="${state.save.achievements.includes(item.id) ? 'unlocked' : ''}"><strong>${item.title}</strong><span>${item.description}</span></li>`).join('');
 }
 
 function render() {
   let life = state.save.currentLife;
   if (!life) life = createNewLife();
+  life = applyGeneratedIdentity(life);
   life = finalizeIfNeeded(life);
   life = ensurePending(life);
   state.save.currentLife = life;
