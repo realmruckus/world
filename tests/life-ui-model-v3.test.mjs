@@ -77,3 +77,7 @@ for (const { name, fn } of tests) {
   catch (error) { console.error(`✗ ${name}`); throw error; }
 }
 console.log(`\n${passed}/${tests.length} tests passed`);
+
+// The existing CI UI gate owns RR-113 coverage without requiring a workflow-file change.
+await import('./life-ui-foundation-rr113.test.mjs');
+await import('./life-ui-page-contract-rr113.test.mjs');

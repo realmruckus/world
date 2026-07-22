@@ -1,0 +1,40 @@
+{
+  "issue": "RR-113",
+  "recordedAt": "2026-07-22T12:45:00+08:00",
+  "implementationHead": "438af4b",
+  "tool": "Codex in-app browser",
+  "page": "life-sim.html",
+  "visualApprovalGranted": false,
+  "viewports": [
+    {
+      "width": 320,
+      "height": 568,
+      "horizontalOverflow": false,
+      "identityBuilder": { "width": 296, "height": 544, "minimumControlSizePx": 44 },
+      "eventRegion": { "clientHeightApprox": 356, "scrollHeightApprox": 788, "overflowY": "auto" },
+      "cardDetail": { "width": 320, "height": 568, "fullScreen": true, "closeable": true, "focusRestoredToChoiceId": "learn" }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "horizontalOverflow": false,
+      "eventRegion": { "clientHeightApprox": 535.6, "scrollHeightApprox": 596 },
+      "observedChoiceControlApprox": { "width": 59, "height": 77 }
+    },
+    {
+      "width": 1280,
+      "height": 800,
+      "horizontalOverflow": false,
+      "eventRegion": { "widthApprox": 561, "heightApprox": 310 },
+      "observedCardApprox": { "width": 158, "height": 258 }
+    }
+  ],
+  "keyboard": {
+    "arrowRightMovedFocus": { "fromChoiceId": "learn", "toChoiceId": "rest" },
+    "detailCloseRestoredFocus": true
+  },
+  "safeArea": "CSS env(safe-area-inset-*) contract present on canvas and modal surfaces",
+  "reducedMotion": "Static contract verified; test environment did not emulate a reduced-motion preference",
+  "assets": "placeholder Asset IDs only",
+  "styles": "neutral CSS tokens only; no formal visual treatment approved"
+}
