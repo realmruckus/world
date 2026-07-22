@@ -103,6 +103,7 @@ function addMap(target, source) {
 
 export function mergeSimulationReports(reports, requestedLifeCount, seedStart) {
   if (!Array.isArray(reports) || reports.length === 0) throw new Error('Simulation reports are required');
+  for (const report of reports) validateSimulationReport(report);
   const executedLifeCount = reports.reduce((sum, report) => sum + report.executedLifeCount, 0);
   const failedLifeCount = reports.reduce((sum, report) => sum + report.failedLifeCount, 0);
   const lifeCount = reports.reduce((sum, report) => sum + report.simulationSummary.lifeCount, 0);
