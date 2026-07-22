@@ -44,6 +44,15 @@ test('touch, keyboard focus, long text, and Reduced Motion remain operable', () 
   assert.match(components, /Arrow(?:Left|Right)/);
 });
 
+test('RR-113 presentation uses neutral color tokens without component-level color literals', () => {
+  assert.match(html, /--life-text:#202020/);
+  assert.match(html, /--life-muted:#606060/);
+  assert.match(html, /--life-focus:#a3a3a3/);
+  const style = html.match(/<style>([\s\S]*?)<\/style>/)?.[1] || '';
+  const rulesWithoutTokenDefinitions = style.replace(/:root\s*\{[^}]*\}/, '');
+  assert.doesNotMatch(rulesWithoutTokenDefinitions, /#[0-9a-f]{3,8}|rgba?\(/i);
+});
+
 test('components emit choiceId or offer metadata and never randomize or execute commands', () => {
   assert.doesNotMatch(components, /Math\.random|crypto\.getRandomValues|applyCommands|resolvePendingChoice/);
   assert.match(components, /choiceId/);

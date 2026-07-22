@@ -23,8 +23,8 @@ test('game panels scroll internally instead of moving the control area', () => {
 });
 
 test('mobile controls keep readable contrast and stable touch targets', () => {
-  assert.match(html, /--life-text:\s*#1f2521/);
-  assert.match(html, /--life-muted:\s*#5f6b63/);
+  assert.match(html, /--life-text:\s*#202020/);
+  assert.match(html, /--life-muted:\s*#606060/);
   assert.match(html, /min-height:\s*48px/);
   assert.match(html, /@media\(max-width:760px\)/);
   assert.match(html, /grid-template-rows:minmax\(0,1fr\) minmax\(280px,48dvh\)/);
