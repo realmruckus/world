@@ -8,7 +8,7 @@ import { evaluateAchievements } from './life-achievement-engine-v3.js';
 import { activeRelationship, eventView, generatedChineseIdentity, metricRows, profileView, timelineRows } from './life-ui-model-v3.js';
 import {
   advanceIdentityBuilder, closeCardDetail, confirmIdentityBuilder, createIdentityBuilder,
-  createLifeChoiceCardViewModel, createLifeInteractionState, createLifeOffer, identityBuilderView,
+  createLifeChoiceCardViewModel, createLifeInteractionState, createLifeOffer, createProfileCardViewModel, identityBuilderView,
   openCardDetail, openExpandedCard, playLifeChoice, requestMulligan, retreatIdentityBuilder, selectIdentityCard,
 } from './life-ui-foundation.js';
 
@@ -97,6 +97,7 @@ function renderIdentityBuilder() {
     if (view.step === 'review') {
       const confirmed = confirmIdentityBuilder(state.identityBuilder);
       state.identityBuilder = null;
+      renderIdentityBuilder();
       state.save.currentLife = createNewLife(confirmed.selections);
       render();
       return;
@@ -128,10 +129,13 @@ function ensurePending(life) {
 
 function renderProfile(life) {
   const view = profileView(life);
-  $('#profile').innerHTML = `${view.avatar}<div><p class="eyebrow">${view.stageLabel} · ${view.ageLabel}</p><h1>${view.name}</h1><p class="profile-meta"><span>${view.gender}</span><span>${view.zodiac}</span><span>${view.birthdayLabel}</span></p><p class="profile-meta"><span>${view.location}</span><span>${view.education}</span><span>${view.career}</span></p></div>`;
+  const profileCard = createProfileCardViewModel(life);
+  const genderLabel = profileCard.identity.genderId || view.gender;
+  const zodiacLabel = profileCard.identity.zodiacSignId || view.zodiac;
+  $('#profile').innerHTML = `${view.avatar}<div><p class="eyebrow">${view.stageLabel} · ${view.ageLabel}</p><h1>${view.name}</h1><p class="profile-meta"><span>${genderLabel}</span><span>${zodiacLabel}</span><span>${view.birthdayLabel}</span></p><p class="profile-meta"><span>${view.location}</span><span>${view.education}</span><span>${view.career}</span></p></div>`;
   $('#metrics').innerHTML = metricRows(life).map(({label,status}) => `<div class="life-condition"><span>${label}</span><strong>${status}</strong></div>`).join('');
   const relationship = activeRelationship(life);
-  $('#facts').innerHTML = `<li><span>现金</span><strong>¥${Math.round(life.finance.cash).toLocaleString('zh-CN')}</strong></li><li><span>资产 / 债务</span><strong>¥${Math.round(life.finance.assets).toLocaleString('zh-CN')} / ¥${Math.round(life.finance.debt).toLocaleString('zh-CN')}</strong></li><li><span>年收入</span><strong>¥${Math.round(life.finance.income).toLocaleString('zh-CN')}</strong></li><li><span>关系</span><strong>${relationship ? `${relationship.name} · ${relationshipNames[relationship.status] || relationship.status}` : '暂无重要伴侣关系'}</strong></li><li><span>人生标签</span><strong>${life.history.tags.join('、') || '尚未形成'}</strong></li>`;
+  $('#facts').innerHTML = `<li><span>家庭 / 父母职业</span><strong>${profileCard.identity.familyId || '—'} · ${profileCard.identity.parentJobIds.join(' / ') || '—'}</strong></li><li><span>现金</span><strong>¥${Math.round(life.finance.cash).toLocaleString('zh-CN')}</strong></li><li><span>资产 / 债务</span><strong>¥${Math.round(life.finance.assets).toLocaleString('zh-CN')} / ¥${Math.round(life.finance.debt).toLocaleString('zh-CN')}</strong></li><li><span>年收入</span><strong>¥${Math.round(life.finance.income).toLocaleString('zh-CN')}</strong></li><li><span>关系</span><strong>${relationship ? `${relationship.name} · ${relationshipNames[relationship.status] || relationship.status}` : '暂无重要伴侣关系'}</strong></li><li><span>人生标签</span><strong>${life.history.tags.join('、') || '尚未形成'}</strong></li>`;
 }
 
 function renderTimeline(life) {
@@ -174,6 +178,16 @@ function renderInteraction() {
       ...card, state: card.cardId === state.interaction.expandedCardId && card.state === 'available' ? 'expanded' : card.state,
     })),
   };
+  hand?.querySelectorAll('[data-choice-id]').forEach((card) => {
+    card.querySelector('[data-card-detail]')?.addEventListener('click', (event) => {
+      event.stopImmediatePropagation();
+      detailChoice(card.dataset.choiceId, event.currentTarget);
+    });
+    card.querySelector('[data-card-play]')?.addEventListener('click', (event) => {
+      event.stopImmediatePropagation();
+      submitChoice(card.dataset.choiceId);
+    });
+  });
   const busy = state.interaction.submissionStatus !== 'idle' || state.interaction.mulliganStatus !== 'idle';
   $('#event-panel')?.setAttribute('aria-busy', String(busy));
 }
@@ -306,6 +320,12 @@ async function init() {
     if (state.interaction) state.interaction = closeCardDetail(state.interaction);
   });
   $('#card-detail').addEventListener('life-choice', (event) => submitChoice(event.detail.choiceId));
+  document.addEventListener('click', (event) => {
+    const detailButton = event.target.closest?.('[data-choice-id] [data-card-detail]');
+    if (!detailButton) return;
+    const card = detailButton.closest('[data-choice-id]');
+    detailChoice(card.dataset.choiceId, detailButton);
+  }, true);
   render();
 }
 

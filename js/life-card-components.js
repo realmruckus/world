@@ -33,13 +33,23 @@ class LifeCardHand extends HTMLElementBase {
 
   render() {
     if (!this.isConnected || !this._model) return;
-    this.innerHTML = this._model.cards.map((card) => `<button class="life-choice-card" type="button" role="option" data-choice-id="${escapeHtml(card.choiceId)}" aria-label="${escapeHtml(card.accessibilityLabel)}" aria-disabled="${card.state === 'disabled' || card.state === 'locked'}"><span class="life-choice-card__asset" aria-hidden="true">${escapeHtml(card.assetId)}</span><strong>${escapeHtml(card.title)}</strong><span>${escapeHtml(card.summary)}</span>${card.disabledReason ? `<small>${escapeHtml(card.disabledReason)}</small>` : ''}<span class="life-choice-card__actions"><span data-card-detail>详情</span><span data-card-play>打出</span></span></button>`).join('');
-    this.querySelectorAll('[data-choice-id]').forEach((button) => {
-      button.addEventListener('click', (event) => {
-        const choiceId = button.dataset.choiceId;
-        if (event.target.closest('[data-card-play]')) emit(this, 'life-choice', { choiceId });
-        else if (event.target.closest('[data-card-detail]')) emit(this, 'card-detail-open', { choiceId });
-        else emit(this, 'card-inspect', { choiceId });
+    this.innerHTML = this._model.cards.map((card) => `<article class="life-choice-card" role="option" tabindex="0" data-choice-id="${escapeHtml(card.choiceId)}" data-state="${escapeHtml(card.state)}" aria-label="${escapeHtml(card.accessibilityLabel)}" aria-disabled="${card.state === 'disabled' || card.state === 'locked'}"><span class="life-choice-card__asset" aria-hidden="true">${escapeHtml(card.assetId)}</span><strong>${escapeHtml(card.title)}</strong><span>${escapeHtml(card.summary)}</span>${card.disabledReason ? `<small>${escapeHtml(card.disabledReason)}</small>` : ''}<span class="life-choice-card__actions"><button type="button" data-card-detail>详情</button><button type="button" data-card-play>打出</button></span></article>`).join('');
+    this.querySelectorAll('[data-choice-id]').forEach((card) => {
+      card.addEventListener('click', (event) => {
+        const choiceId = card.dataset.choiceId;
+        if (!event.target.closest('button')) emit(this, 'card-inspect', { choiceId });
+      });
+      card.querySelector('[data-card-detail]').addEventListener('click', (event) => {
+        event.stopPropagation();
+        globalThis.document?.querySelector('life-card-detail')?.open?.(
+          this._model.cards.find((item) => item.choiceId === card.dataset.choiceId),
+          event.currentTarget,
+        );
+        emit(this, 'card-detail-open', { choiceId: card.dataset.choiceId });
+      });
+      card.querySelector('[data-card-play]').addEventListener('click', (event) => {
+        event.stopPropagation();
+        emit(this, 'life-choice', { choiceId: card.dataset.choiceId });
       });
     });
   }

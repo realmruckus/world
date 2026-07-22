@@ -30,6 +30,7 @@ test('320px, regular phone, landscape, desktop, Safe Area, and dynamic viewport 
   assert.match(html, /100dvh/);
   for (const side of ['top', 'right', 'bottom', 'left']) assert.match(html, new RegExp(`safe-area-inset-${side}`));
   assert.match(html, /scroll-padding-bottom:/);
+  assert.match(html, /\.life-pane-action>\.life-card:not\(#event-panel\),\.life-pane-action>\.life-feedback\{display:none\}/);
 });
 
 test('touch, keyboard focus, long text, and Reduced Motion remain operable', () => {
@@ -50,6 +51,13 @@ test('components emit choiceId or offer metadata and never randomize or execute 
   assert.doesNotMatch(components, /detail:\s*\{[^}]*cardId/);
 });
 
+test('card actions use valid independent controls instead of nesting controls in a button', () => {
+  assert.match(components, /<article class="life-choice-card"/);
+  assert.match(components, /<button type="button" data-card-detail>/);
+  assert.match(components, /<button type="button" data-card-play>/);
+  assert.doesNotMatch(components, /<button class="life-choice-card"/);
+});
+
 test('details are modal, closeable, scrollable, and focus-restoring', () => {
   assert.match(html, /role="dialog"/);
   assert.match(html, /aria-modal="true"/);
@@ -65,3 +73,9 @@ test('the app has submission and mulligan guards without using fixture content a
   assert.doesNotMatch(html, /正式视觉|approved asset|正式卡牌/);
 });
 
+test('identity confirmation closes the builder and the profile consumes ProfileCardViewModel selections', () => {
+  assert.match(app, /state\.identityBuilder\s*=\s*null;\s*renderIdentityBuilder\(\)/);
+  assert.match(app, /createProfileCardViewModel\(life\)/);
+  assert.match(app, /profileCard\.identity\.genderId/);
+  assert.match(app, /profileCard\.identity\.zodiacSignId/);
+});

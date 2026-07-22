@@ -7,8 +7,8 @@
   <title>人生重开实验室 · Realm Ruckus WORLD</title>
   <link rel="stylesheet" href="./styles.css">
   <script type="module" src="./js/components/site-header.js"></script>
-  <script type="module" src="./js/life-card-components.js"></script>
-  <script type="module" src="./js/life-sim-v3.js"></script>
+  <script type="module" src="./js/life-card-components.js?rr113=1"></script>
+  <script type="module" src="./js/life-sim-v3.js?rr113=2"></script>
   <style>
     :root{--life-bg:#171717;--life-surface:#fafafa;--life-surface-soft:#f1f1f1;--life-text:#1f2521;--life-muted:#5f6b63;--life-border:#d4d4d4;--life-accent:#4b5563;--life-accent-soft:#e5e7eb;--life-shadow:0 12px 32px rgba(0,0,0,.16);--ui-space-1:4px;--ui-space-2:8px;--ui-space-3:12px;--ui-space-4:16px;--ui-radius:12px;--ui-duration:160ms}
     *{box-sizing:border-box}
@@ -40,7 +40,7 @@
     .life-score{font-size:1.2rem}.life-score strong{font-size:1.4rem}.achievement-list li{opacity:.5}.achievement-list li.unlocked{opacity:1}.empty{color:var(--life-muted)}
     life-card-hand,life-card-stack{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:var(--ui-space-3);align-items:end;min-height:0;overflow:auto;padding:var(--ui-space-2);scrollbar-gutter:stable}
     .life-choice-card{min-width:0;min-height:176px;display:flex;flex-direction:column;align-items:stretch;gap:var(--ui-space-2);padding:var(--ui-space-3);border:1px solid var(--life-border);border-radius:var(--ui-radius);background:var(--life-surface);color:var(--life-text);text-align:left;overflow-wrap:anywhere;transition:transform var(--ui-duration) ease,border-color var(--ui-duration) ease}
-    .life-choice-card:hover,.life-choice-card:focus-visible{transform:translateY(-4px);border-color:var(--life-accent)}.life-choice-card[aria-disabled="true"]{opacity:.62}.life-choice-card__asset{display:grid;place-items:center;min-height:52px;border:1px dashed var(--life-border);border-radius:8px;background:var(--life-surface-soft);font:600 .7rem/1.2 ui-monospace,monospace;color:var(--life-muted);overflow-wrap:anywhere}.life-choice-card__actions{display:flex;gap:var(--ui-space-2);margin-top:auto}.life-choice-card__actions span{display:grid;place-items:center;min-height:44px;flex:1;border:1px solid var(--life-border);border-radius:8px}
+    .life-choice-card:hover,.life-choice-card:focus-visible,.life-choice-card[data-state="expanded"]{transform:translateY(-4px);border-color:var(--life-accent)}.life-choice-card[aria-disabled="true"]{opacity:.62}.life-choice-card__asset{display:grid;place-items:center;min-height:52px;border:1px dashed var(--life-border);border-radius:8px;background:var(--life-surface-soft);font:600 .7rem/1.2 ui-monospace,monospace;color:var(--life-muted);overflow-wrap:anywhere}.life-choice-card__actions{display:flex;gap:var(--ui-space-2);margin-top:auto}.life-choice-card__actions button{display:grid;place-items:center;min-height:44px;flex:1;border:1px solid var(--life-border);border-radius:8px;background:var(--life-surface);color:var(--life-text)}
     life-card-detail[hidden],life-identity-builder[hidden]{display:none}life-card-detail{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));background:rgba(0,0,0,.66)}.life-card-detail__surface{width:min(560px,100%);max-height:100%;overflow-y:auto;overscroll-behavior:contain;background:var(--life-surface);border:1px solid var(--life-border);border-radius:var(--ui-radius);padding:var(--ui-space-4);overflow-wrap:anywhere}.life-card-detail__surface>[data-card-detail-close]{float:right}.life-card-detail__surface dl{display:grid;grid-template-columns:auto 1fr;gap:var(--ui-space-2)}.life-card-detail__surface dd{margin:0}
     life-card-mulligan{display:flex;align-items:center;justify-content:space-between;gap:var(--ui-space-3);margin-top:var(--ui-space-3)}life-card-mulligan button{min-height:44px}
     life-identity-builder{position:fixed;inset:0;z-index:15;display:grid;place-items:center;padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));background:var(--life-bg)}.identity-builder__surface{width:min(920px,100%);max-height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:var(--ui-space-3);overflow:hidden;background:var(--life-surface);border-radius:var(--ui-radius);padding:var(--ui-space-4)}.identity-builder__cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,148px),1fr));gap:var(--ui-space-3);overflow:auto}.identity-builder__card{min-height:132px;display:grid;align-content:start;gap:var(--ui-space-2);border:1px solid var(--life-border);border-radius:var(--ui-radius);background:var(--life-surface-soft);color:var(--life-text);padding:var(--ui-space-3);text-align:left;overflow-wrap:anywhere}.identity-builder__card[aria-pressed="true"]{outline:3px solid var(--life-accent);outline-offset:-3px}.identity-builder__actions{display:flex;justify-content:space-between;gap:var(--ui-space-2)}
@@ -62,6 +62,10 @@
       #metrics{grid-template-columns:1fr 1fr;gap:7px}.life-condition{padding:9px 10px;font-size:.9rem;align-items:flex-start;flex-direction:column;gap:3px}.life-condition strong{text-align:left}
       .choice-list{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;margin-top:14px;padding:0 2px calc(20px + env(safe-area-inset-bottom)) 0;scrollbar-gutter:stable}
       .choice-list button{min-height:58px}
+      .life-pane-action>.life-card:not(#event-panel),.life-pane-action>.life-feedback{display:none}
+      #event-panel{overflow:auto}
+      #event-panel life-card-hand,#event-panel life-card-stack{flex:none;overflow:visible}
+      .life-grid{grid-template-rows:minmax(0,1fr) minmax(320px,65dvh)!important}
     }
   </style>
 </head>
