@@ -73,3 +73,24 @@ test('RR-120 rejects selection overrides and malformed authoritative Parent Jobs
   wrongSlots.families.find((family) => family.id === 'family_working').parentNpcIds = [];
   assert.throws(() => composeLifeIdentity(wrongSlots, selection), /minItems|parent slots/i);
 });
+
+test('RR-120 parallel report merging preserves complete-failure truth', async () => {
+  const adapter = await import('../js/life-content-simulation-adapter-v1.js');
+  assert.equal(typeof adapter.mergeSimulationReports, 'function');
+  const first = adapter.runContractSimulation({
+    requestedLifeCount: 1,
+    seedStart: 120010,
+    executeLife() { throw new Error('worker one failure'); },
+  });
+  const second = adapter.runContractSimulation({
+    requestedLifeCount: 1,
+    seedStart: 120011,
+    executeLife() { throw new Error('worker two failure'); },
+  });
+  const merged = adapter.mergeSimulationReports([first, second], 2, 120010);
+  assert.equal(merged.status, 'failed');
+  assert.equal(merged.executedLifeCount, 0);
+  assert.equal(merged.failedLifeCount, 2);
+  assert.equal(merged.simulationSummary.lifeCount, 0);
+  assert.deepEqual(merged.errorSummary, { 'worker one failure': 1, 'worker two failure': 1 });
+});
