@@ -7,17 +7,18 @@
   <title>人生重开实验室 · Realm Ruckus WORLD</title>
   <link rel="stylesheet" href="./styles.css">
   <script type="module" src="./js/components/site-header.js"></script>
+  <script type="module" src="./js/life-card-components.js"></script>
   <script type="module" src="./js/life-sim-v3.js"></script>
   <style>
-    :root{--life-bg:#101511;--life-surface:#f8faf8;--life-surface-soft:#eef3ef;--life-text:#1f2521;--life-muted:#5f6b63;--life-border:#d8e0da;--life-accent:#277047;--life-accent-soft:#dcefe3;--life-shadow:0 18px 56px rgba(0,0,0,.22)}
+    :root{--life-bg:#171717;--life-surface:#fafafa;--life-surface-soft:#f1f1f1;--life-text:#1f2521;--life-muted:#5f6b63;--life-border:#d4d4d4;--life-accent:#4b5563;--life-accent-soft:#e5e7eb;--life-shadow:0 12px 32px rgba(0,0,0,.16);--ui-space-1:4px;--ui-space-2:8px;--ui-space-3:12px;--ui-space-4:16px;--ui-radius:12px;--ui-duration:160ms}
     *{box-sizing:border-box}
     html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--life-bg);color:var(--life-text)}
     body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
     world-site-header{display:none}
     body>footer{display:none}
     button,input{font:inherit}
-    button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-    .life-canvas{height:100dvh;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);gap:14px;padding:max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));background:radial-gradient(circle at top left,#1d2c22 0,#101511 42%,#090c0a 100%)}
+    button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;min-inline-size:44px}
+    .life-canvas{height:100dvh;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);gap:14px;padding:max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));scroll-padding-bottom:calc(20px + env(safe-area-inset-bottom));background:var(--life-bg)}
     .life-topbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;min-width:0}
     .life-brand{min-width:0}.life-brand p{margin:0;color:#9ed4af;font-size:.78rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase}.life-brand h1{margin:3px 0 0;color:#fff;font-size:clamp(1.2rem,3vw,1.8rem);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .life-toolbar{display:flex;gap:8px;justify-content:flex-end;flex-wrap:nowrap;min-width:0}
@@ -37,6 +38,18 @@
     .choice-list{display:grid;gap:10px;margin-top:20px}.choice-list button{text-align:left;width:100%;min-height:64px;background:#fff}.choice-list button:hover{border-color:var(--life-accent);background:#f7fbf8}.choice-list span{display:block;color:var(--life-muted);margin-top:4px;font-weight:500;line-height:1.45}
     .timeline{list-style:none;padding:0;margin:0}.timeline li{display:grid;grid-template-columns:76px 1fr;gap:12px;padding:14px 0;border-bottom:1px solid var(--life-border)}.timeline time{font-weight:800;color:var(--life-accent)}.timeline p{margin:.25rem 0;color:var(--life-muted);line-height:1.5}.timeline strong{color:var(--life-text)}
     .life-score{font-size:1.2rem}.life-score strong{font-size:1.4rem}.achievement-list li{opacity:.5}.achievement-list li.unlocked{opacity:1}.empty{color:var(--life-muted)}
+    life-card-hand,life-card-stack{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:var(--ui-space-3);align-items:end;min-height:0;overflow:auto;padding:var(--ui-space-2);scrollbar-gutter:stable}
+    .life-choice-card{min-width:0;min-height:176px;display:flex;flex-direction:column;align-items:stretch;gap:var(--ui-space-2);padding:var(--ui-space-3);border:1px solid var(--life-border);border-radius:var(--ui-radius);background:var(--life-surface);color:var(--life-text);text-align:left;overflow-wrap:anywhere;transition:transform var(--ui-duration) ease,border-color var(--ui-duration) ease}
+    .life-choice-card:hover,.life-choice-card:focus-visible{transform:translateY(-4px);border-color:var(--life-accent)}.life-choice-card[aria-disabled="true"]{opacity:.62}.life-choice-card__asset{display:grid;place-items:center;min-height:52px;border:1px dashed var(--life-border);border-radius:8px;background:var(--life-surface-soft);font:600 .7rem/1.2 ui-monospace,monospace;color:var(--life-muted);overflow-wrap:anywhere}.life-choice-card__actions{display:flex;gap:var(--ui-space-2);margin-top:auto}.life-choice-card__actions span{display:grid;place-items:center;min-height:44px;flex:1;border:1px solid var(--life-border);border-radius:8px}
+    life-card-detail[hidden],life-identity-builder[hidden]{display:none}life-card-detail{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));background:rgba(0,0,0,.66)}.life-card-detail__surface{width:min(560px,100%);max-height:100%;overflow-y:auto;overscroll-behavior:contain;background:var(--life-surface);border:1px solid var(--life-border);border-radius:var(--ui-radius);padding:var(--ui-space-4);overflow-wrap:anywhere}.life-card-detail__surface>[data-card-detail-close]{float:right}.life-card-detail__surface dl{display:grid;grid-template-columns:auto 1fr;gap:var(--ui-space-2)}.life-card-detail__surface dd{margin:0}
+    life-card-mulligan{display:flex;align-items:center;justify-content:space-between;gap:var(--ui-space-3);margin-top:var(--ui-space-3)}life-card-mulligan button{min-height:44px}
+    life-identity-builder{position:fixed;inset:0;z-index:15;display:grid;place-items:center;padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));background:var(--life-bg)}.identity-builder__surface{width:min(920px,100%);max-height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:var(--ui-space-3);overflow:hidden;background:var(--life-surface);border-radius:var(--ui-radius);padding:var(--ui-space-4)}.identity-builder__cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,148px),1fr));gap:var(--ui-space-3);overflow:auto}.identity-builder__card{min-height:132px;display:grid;align-content:start;gap:var(--ui-space-2);border:1px solid var(--life-border);border-radius:var(--ui-radius);background:var(--life-surface-soft);color:var(--life-text);padding:var(--ui-space-3);text-align:left;overflow-wrap:anywhere}.identity-builder__card[aria-pressed="true"]{outline:3px solid var(--life-accent);outline-offset:-3px}.identity-builder__actions{display:flex;justify-content:space-between;gap:var(--ui-space-2)}
+    .life-interface-states{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}.life-feedback{min-height:44px;margin:0;color:var(--life-muted)}
+    @media(max-width:359px){.life-canvas{padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))}.life-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))!important}.life-grid{grid-template-rows:minmax(0,1fr) minmax(236px,46dvh)!important}.life-card{padding:12px}.identity-builder__surface{padding:10px}.identity-builder__cards{grid-template-columns:1fr 1fr}.life-choice-card{min-height:148px}}
+    @media(min-width:360px) and (max-width:760px){life-card-hand,life-card-stack{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(orientation:landscape) and (max-height:520px){.life-topbar{display:none}.life-canvas{grid-template-rows:minmax(0,1fr)}.life-grid{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);grid-template-rows:minmax(0,1fr)}life-card-hand,life-card-stack{grid-template-columns:repeat(3,minmax(140px,1fr))}}
+    @media(min-width:1024px){life-card-hand,life-card-stack{grid-template-columns:repeat(3,minmax(0,1fr))}.life-choice-card{min-height:210px}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.life-choice-card:hover,.life-choice-card:focus-visible{transform:none}}
     @media(max-width:760px){
       .life-canvas{gap:10px;padding:max(10px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}
       .life-topbar{grid-template-columns:minmax(0,1fr);gap:9px}.life-brand p{display:none}.life-brand h1{font-size:1.15rem}
@@ -55,6 +68,9 @@
 <body>
   <world-site-header></world-site-header>
   <main class="life-canvas">
+    <section class="life-interface-states" aria-hidden="true">
+      <span data-interface-state="annual"></span><span data-interface-state="romance"></span><span data-interface-state="crisis"></span><span data-interface-state="ending"></span>
+    </section>
     <header class="life-topbar">
       <div class="life-brand">
         <p>Life Simulation Engine v3</p>
@@ -69,17 +85,20 @@
       </div>
     </header>
     <section class="life-grid" aria-label="人生模拟游戏画布">
-      <div class="life-pane life-pane-profile">
+      <div class="life-pane life-pane-profile" data-life-region="profile">
         <article class="life-card"><div id="profile"></div><div id="metrics"></div><ul class="fact-list" id="facts"></ul></article>
         <article class="life-card"><p class="eyebrow">人生记录</p><h2>重要经历</h2><ol class="timeline" id="timeline"></ol></article>
       </div>
-      <div class="life-pane life-pane-action">
-        <article class="life-card" id="event-panel" aria-live="polite"></article>
+      <div class="life-pane life-pane-action" data-life-region="choices">
+        <article class="life-card" id="event-panel" aria-live="polite"><life-card-hand></life-card-hand><life-card-stack hidden></life-card-stack><life-card-mulligan data-offer-id="" data-revision="0"><span>换牌由 Offer Model 提供</span><button type="button">全部换牌</button></life-card-mulligan></article>
+        <p class="life-feedback" data-life-region="feedback" role="status"></p>
         <article class="life-card"><p class="eyebrow">往世档案</p><h2>历史人生</h2><ul class="archive-list" id="archives"></ul></article>
         <article class="life-card"><p class="eyebrow">成就</p><h2>跨人生里程碑</h2><ul class="achievement-list" id="achievements"></ul></article>
       </div>
     </section>
   </main>
+  <life-identity-builder id="identity-builder" aria-label="身份构筑" hidden></life-identity-builder>
+  <life-card-detail id="card-detail" role="dialog" aria-modal="true" aria-label="卡牌详情" hidden><div class="life-card-detail__surface"><button type="button" data-card-detail-close>关闭</button></div></life-card-detail>
   <footer>© 2026 Bostage Pte. Ltd. · Realm Ruckus™ · WORLD MVP</footer>
 </body>
 </html>
