@@ -178,16 +178,6 @@ function renderInteraction() {
       ...card, state: card.cardId === state.interaction.expandedCardId && card.state === 'available' ? 'expanded' : card.state,
     })),
   };
-  hand?.querySelectorAll('[data-choice-id]').forEach((card) => {
-    card.querySelector('[data-card-detail]')?.addEventListener('click', (event) => {
-      event.stopImmediatePropagation();
-      detailChoice(card.dataset.choiceId, event.currentTarget);
-    });
-    card.querySelector('[data-card-play]')?.addEventListener('click', (event) => {
-      event.stopImmediatePropagation();
-      submitChoice(card.dataset.choiceId);
-    });
-  });
   const busy = state.interaction.submissionStatus !== 'idle' || state.interaction.mulliganStatus !== 'idle';
   $('#event-panel')?.setAttribute('aria-busy', String(busy));
 }
@@ -208,6 +198,12 @@ function detailChoice(choiceId, restoreFocus) {
     const card = state.interaction.offer.cards.find((item) => item.choiceId === choiceId);
     $('#card-detail').open(card, restoreFocus);
   } catch (error) { showFeedback(error.message); }
+}
+
+function detailControlFor(choiceId) {
+  return [...document.querySelectorAll('#event-panel [data-choice-id]')]
+    .find((card) => card.dataset.choiceId === choiceId)
+    ?.querySelector('[data-card-detail]') || null;
 }
 
 function submitChoice(choiceId) {
@@ -313,19 +309,15 @@ async function init() {
   $('#import-file').addEventListener('change', (event) => { const file = event.target.files?.[0]; if (file) importSave(file).catch(showError); event.target.value = ''; });
   $('#clear-data').addEventListener('click', clearData);
   $('#event-panel').addEventListener('card-inspect', (event) => inspectChoice(event.detail.choiceId));
-  $('#event-panel').addEventListener('card-detail-open', (event) => detailChoice(event.detail.choiceId, event.target));
+  $('#event-panel').addEventListener('card-detail-open', (event) => {
+    detailChoice(event.detail.choiceId, detailControlFor(event.detail.choiceId));
+  });
   $('#event-panel').addEventListener('life-choice', (event) => submitChoice(event.detail.choiceId));
   $('#event-panel').addEventListener('mulligan-request', requestOfferMulligan);
   $('#card-detail').addEventListener('card-detail-close', () => {
     if (state.interaction) state.interaction = closeCardDetail(state.interaction);
   });
   $('#card-detail').addEventListener('life-choice', (event) => submitChoice(event.detail.choiceId));
-  document.addEventListener('click', (event) => {
-    const detailButton = event.target.closest?.('[data-choice-id] [data-card-detail]');
-    if (!detailButton) return;
-    const card = detailButton.closest('[data-choice-id]');
-    detailChoice(card.dataset.choiceId, detailButton);
-  }, true);
   render();
 }
 

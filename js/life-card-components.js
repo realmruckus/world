@@ -41,10 +41,6 @@ class LifeCardHand extends HTMLElementBase {
       });
       card.querySelector('[data-card-detail]').addEventListener('click', (event) => {
         event.stopPropagation();
-        globalThis.document?.querySelector('life-card-detail')?.open?.(
-          this._model.cards.find((item) => item.choiceId === card.dataset.choiceId),
-          event.currentTarget,
-        );
         emit(this, 'card-detail-open', { choiceId: card.dataset.choiceId });
       });
       card.querySelector('[data-card-play]').addEventListener('click', (event) => {

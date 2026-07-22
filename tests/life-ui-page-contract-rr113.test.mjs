@@ -64,6 +64,7 @@ test('details are modal, closeable, scrollable, and focus-restoring', () => {
   assert.match(html, /data-card-detail-close/);
   assert.match(html, /\.life-card-detail__surface\{[^}]*overflow-y:auto/);
   assert.match(components, /restoreFocus/);
+  assert.match(app, /detailControlFor\(event\.detail\.choiceId\)/);
 });
 
 test('the app has submission and mulligan guards without using fixture content as product copy', () => {
