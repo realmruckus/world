@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import test from 'node:test';
 
 import { composeLifeIdentity, validateJsonSchema } from '../js/life-content-contract-v1.js';
-import { runContractSimulation } from '../js/life-content-simulation-adapter-v1.js';
+import { runContractSimulation, validateSimulationReport } from '../js/life-content-simulation-adapter-v1.js';
 import { runLife } from '../js/life-simulation-v3.js';
 
 const fixture = JSON.parse(fs.readFileSync(new URL('../data/fixtures/life-content-contract-v1.json', import.meta.url), 'utf8'));
@@ -93,4 +93,40 @@ test('RR-120 parallel report merging preserves complete-failure truth', async ()
   assert.equal(merged.failedLifeCount, 2);
   assert.equal(merged.simulationSummary.lifeCount, 0);
   assert.deepEqual(merged.errorSummary, { 'worker one failure': 1, 'worker two failure': 1 });
+});
+
+test('RR-120 rejects internally inconsistent reports before parallel merging', async () => {
+  const adapter = await import('../js/life-content-simulation-adapter-v1.js');
+  const invalidWorkerReport = adapter.runContractSimulation({
+    requestedLifeCount: 1,
+    seedStart: 120020,
+    executeLife() { throw new Error('controlled failure'); },
+  });
+  invalidWorkerReport.executedLifeCount = 1;
+  invalidWorkerReport.simulationSummary.lifeCount = 1;
+  invalidWorkerReport.status = 'completed_with_errors';
+  assert.throws(
+    () => adapter.mergeSimulationReports([invalidWorkerReport], 2, 120020),
+    /counts must sum to requestedLifeCount/i,
+  );
+});
+
+test('RR-120 semantic report validation rejects count, status, summary, and error drift', () => {
+  const valid = runContractSimulation({ requestedLifeCount: 2, seedStart: 120030 });
+  for (const mutate of [
+    (report) => { report.executedLifeCount = 1; },
+    (report) => { report.status = 'failed'; },
+    (report) => { report.simulationSummary.lifeCount = 1; },
+    (report) => { report.errorSummary.unreported = 1; },
+  ]) {
+    const report = structuredClone(valid);
+    mutate(report);
+    assert.throws(() => validateSimulationReport(report), /Simulation/i);
+  }
+});
+
+test('RR-120 is an explicit GitHub Actions gate', () => {
+  const workflow = fs.readFileSync(new URL('../.github/workflows/life-engine-tests.yml', import.meta.url), 'utf8');
+  assert.match(workflow, /Test RR-120 Corrections/);
+  assert.match(workflow, /tests\/life-content-rr120\.test\.mjs/);
 });
