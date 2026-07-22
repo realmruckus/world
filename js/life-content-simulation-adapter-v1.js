@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { composeLifeIdentity, validateJsonSchema, validateLifeContentPackage } from './life-content-contract-v1.js';
 import { runLife, summarizeBatch } from './life-simulation-v3.js';
 
-export const LIFE_CONTENT_SIMULATION_POLICY_VERSION = 'rr-119-adapter-v1';
+export const LIFE_CONTENT_SIMULATION_POLICY_VERSION = 'rr-120-adapter-v1';
 export const LIFE_CONTENT_SIMULATION_CONTENT_VERSION = 'life-engine-content-v3';
 
 const readJson = (path) => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'));
@@ -95,6 +95,73 @@ function ageBandCoverage(simulationSummary) {
 
 function increment(map, key) {
   map[key] = (map[key] || 0) + 1;
+}
+
+function addMap(target, source) {
+  for (const [key, value] of Object.entries(source || {})) target[key] = (target[key] || 0) + value;
+}
+
+export function mergeSimulationReports(reports, requestedLifeCount, seedStart) {
+  if (!Array.isArray(reports) || reports.length === 0) throw new Error('Simulation reports are required');
+  const executedLifeCount = reports.reduce((sum, report) => sum + report.executedLifeCount, 0);
+  const failedLifeCount = reports.reduce((sum, report) => sum + report.failedLifeCount, 0);
+  const lifeCount = reports.reduce((sum, report) => sum + report.simulationSummary.lifeCount, 0);
+  const mapFields = [
+    'endingDistribution', 'deathCauseDistribution', 'eventFrequency', 'careerDistribution',
+    'relationshipStatusDistribution', 'relationshipPathDistribution', 'achievementFrequency',
+  ];
+  const simulationSummary = {};
+  for (const field of mapFields) {
+    simulationSummary[field] = {};
+    for (const report of reports) addMap(simulationSummary[field], report.simulationSummary[field]);
+  }
+  const weightedFields = [
+    'averageTurns', 'averageLifeScore', 'eventCoverageRate', 'repeatRate', 'romanceStallRate',
+    'invalidChoiceRate', 'achievementUnlockRate',
+  ];
+  for (const field of weightedFields) {
+    simulationSummary[field] = reports.reduce(
+      (sum, report) => sum + Number(report.simulationSummary[field] || 0) * report.simulationSummary.lifeCount,
+      0,
+    ) / Math.max(1, lifeCount);
+  }
+  const metricIds = new Set(reports.flatMap((report) => Object.keys(report.simulationSummary.metricAverages || {})));
+  simulationSummary.metricAverages = Object.fromEntries([...metricIds].sort().map((id) => [id, Math.round(
+    reports.reduce((sum, report) => sum + Number(report.simulationSummary.metricAverages[id] || 0) * report.simulationSummary.lifeCount, 0)
+      / Math.max(1, lifeCount),
+  )]));
+  simulationSummary.lifeCount = lifeCount;
+  simulationSummary.uniqueEventCount = Object.keys(simulationSummary.eventFrequency).length;
+
+  const ageBandEventCoverage = {};
+  for (const report of reports) {
+    for (const [id, coverage] of Object.entries(report.ageBandEventCoverage)) {
+      const target = ageBandEventCoverage[id] ||= { declaredEventCount: 0, observedUniqueEventCount: 0, observedOccurrenceCount: 0 };
+      target.declaredEventCount = Math.max(target.declaredEventCount, coverage.declaredEventCount);
+      target.observedUniqueEventCount = Math.max(target.observedUniqueEventCount, coverage.observedUniqueEventCount);
+      target.observedOccurrenceCount += coverage.observedOccurrenceCount;
+    }
+  }
+  const errorSummary = {};
+  for (const report of reports) addMap(errorSummary, report.errorSummary);
+  const report = {
+    schemaVersion: 1,
+    status: failedLifeCount === 0 ? 'completed' : executedLifeCount === 0 ? 'failed' : 'completed_with_errors',
+    requestedLifeCount,
+    executedLifeCount,
+    failedLifeCount,
+    seed: { strategy: 'consecutive_integer', start: seedStart, end: seedStart + requestedLifeCount - 1 },
+    policyVersion: reports[0].policyVersion,
+    contentVersion: reports[0].contentVersion,
+    contractVersion: reports[0].contractVersion,
+    ageBandEventCoverage,
+    relationshipPathDistribution: simulationSummary.relationshipPathDistribution,
+    endingDistribution: simulationSummary.endingDistribution,
+    errorSummary,
+    simulationSummary,
+  };
+  validateSimulationReport(report);
+  return report;
 }
 
 function deterministicChoice(event, life) {
