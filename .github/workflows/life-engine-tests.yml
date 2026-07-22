@@ -62,3 +62,5 @@ jobs:
         run: node scripts/run-life-content-simulation-v1.mjs --count 10000 --workers 4 --output /tmp/life-content-simulation-10000-v1.json
       - name: Test UI View Models
         run: node tests/life-ui-model-v3.test.mjs
+      - name: Test RR-113 UI Foundation
+        run: node --test tests/life-ui-foundation-rr113.test.mjs tests/life-ui-page-contract-rr113.test.mjs
