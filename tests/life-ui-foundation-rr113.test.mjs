@@ -96,6 +96,9 @@ test('IdentityBuilder view exposes card steps and placeholder assets only', () =
   assert.equal(view.kind, 'identity-builder');
   assert.equal(view.cards.every((item) => item.assetId.startsWith('placeholder:')), true);
   assert.equal(view.canAdvance, false);
+  assert.throws(() => createIdentityBuilder({
+    options: { ...identityOptions, gender: [{ id: 'gender_a', assetId: 'approved:identity' }] },
+  }), /placeholder Asset ID/i);
 });
 
 test('ProfileCardViewModel reads identity and current state without mutating them', () => {
@@ -178,11 +181,14 @@ test('Mulligan only requests a replacement and applies the deterministic Offer M
 
 test('empty offers, stale mulligans, and missing restored focus fail closed', () => {
   assert.throws(() => createLifeOffer({ offerId: 'empty', revision: 1, cards: [] }), /at least one card/i);
+  assert.throws(() => createLifeOffer({ offerId: 'raw', revision: 1, cards: [{ choiceId: 'a' }] }), /choice card view model/i);
   const offer = createLifeOffer({ offerId: 'offer-4', revision: 2, mulligansRemaining: 1, cards: [card('a')] });
   const requested = requestMulligan(createLifeInteractionState({ offer }));
   assert.throws(() => applyMulliganOffer(requested.state, { ...offer, revision: 2 }), /newer revision/i);
   const stale = { ...requested.state, detailChoiceId: 'missing' };
   assert.throws(() => restoreLifeInteractionState(stale, offer), /unknown detail choice/i);
+  assert.throws(() => restoreLifeInteractionState({ ...requested.state, submissionStatus: 'unknown' }, offer), /submission status/i);
+  assert.throws(() => restoreLifeInteractionState({ ...requested.state, mulliganStatus: 'unknown' }, offer), /mulligan status/i);
 });
 
 test('refresh restoration preserves in-flight guards instead of allowing resubmission', () => {

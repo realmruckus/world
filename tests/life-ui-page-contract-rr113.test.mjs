@@ -85,3 +85,9 @@ test('placeholder identity stays an explicit UI draft and never overrides author
   assert.match(app, /uiPrototype\s*=\s*\{\s*status:\s*'draft'/);
   assert.doesNotMatch(app, /Object\.assign\(life\.identity,\s*\{[\s\S]*?parentJobIds:/);
 });
+
+test('archiving returns to IdentityBuilder instead of bypassing it with an unselected life', () => {
+  const archiveBody = app.match(/function archiveAndRestart\(\)\s*\{([\s\S]*?)\n\}/)?.[1] || '';
+  assert.match(archiveBody, /next\.currentLife\s*=\s*null/);
+  assert.doesNotMatch(archiveBody, /createNewLife\(/);
+});

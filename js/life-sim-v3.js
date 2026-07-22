@@ -263,7 +263,7 @@ function archiveAndRestart() {
   let next = archiveFinishedLife(state.save, life, { endedAt:new Date().toISOString(), includeSnapshot:true });
   const unlocked = evaluateAchievements(next, state.content.achievements, life);
   next = unlockAchievements(next, unlocked, new Date().toISOString());
-  next.currentLife = createNewLife();
+  next.currentLife = null;
   state.save = next;
   render();
 }

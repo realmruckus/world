@@ -4,6 +4,8 @@ export const IDENTITY_STEPS = Object.freeze([
 
 const SELECTABLE_IDENTITY_STEPS = IDENTITY_STEPS.slice(0, -1);
 const CARD_STATES = new Set(['available', 'expanded', 'disabled', 'locked']);
+const SUBMISSION_STATUSES = new Set(['idle', 'submitting']);
+const MULLIGAN_STATUSES = new Set(['idle', 'requesting']);
 const CARD_FIELDS = new Set([
   'cardId', 'choiceId', 'title', 'summary', 'details', 'assetId', 'state', 'disabledReason',
   'requirements', 'effectsPreview', 'risk', 'source', 'rarityOrImportance', 'accessibilityLabel',
@@ -34,6 +36,11 @@ function validateIdentityOptions(options) {
     const ids = options[step].map((item) => typeof item === 'string' ? item : item?.id);
     ids.forEach((id) => nonEmptyId(id, `${step} option`));
     if (new Set(ids).size !== ids.length) throw new Error(`Duplicate ${step} option`);
+    for (const item of options[step]) {
+      if (typeof item !== 'string' && item.assetId && !String(item.assetId).startsWith('placeholder:')) {
+        throw new Error(`${step} option assetId must be a placeholder Asset ID`);
+      }
+    }
   }
 }
 
@@ -188,6 +195,19 @@ function validateOffer(offer) {
   if (!offer || offer.kind !== 'life-offer') throw new Error('A Life Offer is required');
   if (!Array.isArray(offer.cards) || offer.cards.length === 0) throw new Error('Life Offer requires at least one card');
   if (!Number.isInteger(offer.revision) || offer.revision < 0) throw new Error('Offer revision must be a non-negative integer');
+  offer.cards.forEach(validateChoiceCardViewModel);
+}
+
+function validateChoiceCardViewModel(card) {
+  if (!card || typeof card !== 'object' || CARD_FIELDS.size !== Object.keys(card).length) {
+    throw new Error('Life Offer cards must be complete choice card view models');
+  }
+  for (const field of CARD_FIELDS) {
+    if (!Object.hasOwn(card, field)) throw new Error('Life Offer cards must be complete choice card view models');
+  }
+  if (!String(card.assetId || '').startsWith('placeholder:') || !CARD_STATES.has(card.state)) {
+    throw new Error('Life Offer cards must be valid choice card view models');
+  }
 }
 
 export function createLifeOffer({ offerId, revision, cards, mulligansRemaining = 0 } = {}) {
@@ -195,6 +215,7 @@ export function createLifeOffer({ offerId, revision, cards, mulligansRemaining =
   if (!Number.isInteger(revision) || revision < 0) throw new Error('Offer revision must be a non-negative integer');
   if (!Array.isArray(cards) || cards.length === 0) throw new Error('Life Offer requires at least one card');
   if (!Number.isInteger(mulligansRemaining) || mulligansRemaining < 0) throw new Error('mulligansRemaining must be a non-negative integer');
+  cards.forEach(validateChoiceCardViewModel);
   const choiceIds = cards.map((item) => item?.choiceId);
   if (choiceIds.some((id) => !id) || new Set(choiceIds).size !== choiceIds.length) throw new Error('Offer choiceIds must be present and unique');
   return freeze({ kind: 'life-offer', offerId, revision, mulligansRemaining, cards: clone(cards) });
@@ -211,6 +232,8 @@ export function createLifeInteractionState({ offer } = {}) {
 function assertInteraction(state) {
   if (!state || state.kind !== 'life-interaction') throw new Error('Invalid life interaction state');
   validateOffer(state.offer);
+  if (!SUBMISSION_STATUSES.has(state.submissionStatus)) throw new Error('Invalid submission status');
+  if (!MULLIGAN_STATUSES.has(state.mulliganStatus)) throw new Error('Invalid mulligan status');
 }
 
 function cardForChoice(state, choiceId) {
@@ -276,6 +299,7 @@ export function applyMulliganOffer(state, nextOffer) {
 export function restoreLifeInteractionState(snapshot, currentOffer) {
   validateOffer(currentOffer);
   if (!snapshot || snapshot.kind !== 'life-interaction') throw new Error('Invalid interaction snapshot');
+  assertInteraction(snapshot);
   if (snapshot.offer.offerId !== currentOffer.offerId || snapshot.offer.revision !== currentOffer.revision) {
     return createLifeInteractionState({ offer: currentOffer });
   }
