@@ -11,7 +11,7 @@
   ],
   "properties": {
     "schemaVersion": { "const": 1 },
-    "status": { "enum": ["completed", "completed_with_errors"] },
+    "status": { "enum": ["completed", "completed_with_errors", "failed"] },
     "requestedLifeCount": { "type": "integer", "minimum": 1 },
     "executedLifeCount": { "type": "integer", "minimum": 0 },
     "failedLifeCount": { "type": "integer", "minimum": 0 },

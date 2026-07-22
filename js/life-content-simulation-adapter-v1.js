@@ -29,8 +29,6 @@ const identityCombinations = contractContent.families.flatMap((family, familyInd
       familyId: family.id,
       genderId: gender.id,
       zodiacSignId: zodiac.id,
-      parentJobIds: family.parentNpcIds.map((_, slotIndex) =>
-        contractContent.parentJobs[(familyIndex + genderIndex + zodiacIndex + slotIndex) % contractContent.parentJobs.length].id),
     })),
   ),
 );
@@ -113,6 +111,8 @@ export function runContractSimulation(options = {}) {
   const seedStart = options.seedStart ?? 119000;
   if (!Number.isInteger(requestedLifeCount) || requestedLifeCount < 1) throw new Error('requestedLifeCount must be a positive integer');
   if (!Number.isInteger(seedStart)) throw new Error('seedStart must be an integer');
+  const executeLife = options.executeLife ?? runLife;
+  if (typeof executeLife !== 'function') throw new Error('executeLife must be a function');
 
   const results = [];
   const errorSummary = {};
@@ -124,7 +124,7 @@ export function runContractSimulation(options = {}) {
 
   for (let index = 0; index < requestedLifeCount; index += 1) {
     try {
-      results.push(runLife(seedStart + index, policy, formalContent));
+      results.push(executeLife(seedStart + index, policy, formalContent));
     } catch (error) {
       increment(errorSummary, error instanceof Error ? error.message : String(error));
     }
@@ -132,13 +132,29 @@ export function runContractSimulation(options = {}) {
 
   const failedLifeCount = requestedLifeCount - results.length;
   const simulationSummary = results.length ? summarizeBatch(results, formalContent) : {
-    endingDistribution: {}, relationshipPathDistribution: {}, eventFrequency: {},
+    lifeCount: 0,
+    endingDistribution: {},
+    deathCauseDistribution: {},
+    eventFrequency: {},
+    careerDistribution: {},
+    relationshipStatusDistribution: {},
+    relationshipPathDistribution: {},
+    achievementFrequency: {},
+    metricAverages: {},
+    averageTurns: 0,
+    averageLifeScore: 0,
+    uniqueEventCount: 0,
+    eventCoverageRate: 0,
+    repeatRate: 0,
+    romanceStallRate: 0,
+    invalidChoiceRate: 0,
+    achievementUnlockRate: 0,
   };
   const report = {
     schemaVersion: 1,
-    status: failedLifeCount === 0 ? 'completed' : 'completed_with_errors',
+    status: failedLifeCount === 0 ? 'completed' : results.length === 0 ? 'failed' : 'completed_with_errors',
     requestedLifeCount,
-    executedLifeCount: requestedLifeCount,
+    executedLifeCount: results.length,
     failedLifeCount,
     seed: {
       strategy: 'consecutive_integer',
@@ -154,6 +170,23 @@ export function runContractSimulation(options = {}) {
     errorSummary,
     simulationSummary,
   };
-  validateJsonSchema(report, reportSchema);
+  validateSimulationReport(report);
   return report;
+}
+
+export function validateSimulationReport(report) {
+  validateJsonSchema(report, reportSchema);
+  if (report.executedLifeCount + report.failedLifeCount !== report.requestedLifeCount) {
+    throw new Error('Simulation report counts must sum to requestedLifeCount');
+  }
+  const expectedStatus = report.failedLifeCount === 0
+    ? 'completed'
+    : report.executedLifeCount === 0 ? 'failed' : 'completed_with_errors';
+  if (report.status !== expectedStatus) throw new Error(`Simulation report status must be ${expectedStatus}`);
+  if (report.simulationSummary.lifeCount !== report.executedLifeCount) {
+    throw new Error('Simulation summary lifeCount must equal executedLifeCount');
+  }
+  const errorCount = Object.values(report.errorSummary).reduce((sum, count) => sum + count, 0);
+  if (errorCount !== report.failedLifeCount) throw new Error('Simulation errorSummary must equal failedLifeCount');
+  return true;
 }

@@ -220,17 +220,15 @@ export function validateLifeContentPackage(content) {
 export function composeLifeIdentity(content, selection) {
   validateLifeContentPackage(content);
   assertObject(selection, 'Identity selection');
+  if (Object.prototype.hasOwnProperty.call(selection, 'parentJobIds')) {
+    throw new Error('Identity selection must not override Parent Job data');
+  }
   const family = content.families.find((item) => item.id === selection.familyId);
   if (!family) throw new Error(`Unknown Family: ${selection.familyId}`);
   if (!ids(content, 'genders').has(selection.genderId)) throw new Error(`Unknown Gender: ${selection.genderId}`);
   if (!ids(content, 'zodiacSigns').has(selection.zodiacSignId)) throw new Error(`Unknown Zodiac: ${selection.zodiacSignId}`);
-  if (!Array.isArray(selection.parentJobIds) || selection.parentJobIds.length !== family.parentNpcIds.length) {
-    throw new Error(`Identity Parent Job count must match Family parent slots: ${family.id}`);
-  }
-  const parentJobIds = ids(content, 'parentJobs');
-  for (const parentJobId of selection.parentJobIds) {
-    if (!parentJobIds.has(parentJobId)) throw new Error(`Unknown Parent Job: ${parentJobId}`);
-  }
+  const npcById = new Map(content.npcs.map((npc) => [npc.id, npc]));
+  const parentJobIds = family.parentNpcIds.map((npcId) => npcById.get(npcId).parentJobId);
   const origin = content.origins.find((item) => item.familyId === family.id);
   return {
     familyId: family.id,
@@ -238,7 +236,7 @@ export function composeLifeIdentity(content, selection) {
     genderId: selection.genderId,
     zodiacSignId: selection.zodiacSignId,
     parentNpcIds: [...family.parentNpcIds],
-    parentJobIds: [...selection.parentJobIds],
+    parentJobIds,
   };
 }
 
