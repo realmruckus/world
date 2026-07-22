@@ -9,7 +9,7 @@
     "start": 119000,
     "end": 128999
   },
-  "policyVersion": "rr-119-adapter-v1",
+  "policyVersion": "rr-120-adapter-v1",
   "contentVersion": "life-engine-content-v3",
   "contractVersion": 1,
   "ageBandEventCoverage": {
