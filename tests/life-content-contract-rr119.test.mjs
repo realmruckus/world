@@ -19,8 +19,6 @@ test('Family and Origin templates do not bind gender or zodiac identity', () => 
   for (const family of content.families) {
     for (const gender of content.genders) {
       for (const zodiac of content.zodiacSigns) {
-        const parentJobIds = family.parentNpcIds.map((npcId) =>
-          content.npcs.find((npc) => npc.id === npcId).parentJobId);
         const selection = contract.composeLifeIdentity(content, {
           familyId: family.id,
           genderId: gender.id,
