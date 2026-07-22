@@ -25,7 +25,6 @@ test('Family and Origin templates do not bind gender or zodiac identity', () => 
           familyId: family.id,
           genderId: gender.id,
           zodiacSignId: zodiac.id,
-          parentJobIds,
         });
         assert.deepEqual(
           { familyId: selection.familyId, genderId: selection.genderId, zodiacSignId: selection.zodiacSignId },
@@ -42,30 +41,31 @@ test('identity composition is deterministic and fails closed on unknown referenc
     familyId: 'family_working',
     genderId: 'gender_c',
     zodiacSignId: 'pisces',
-    parentJobIds: ['job_teacher', 'job_nurse'],
   };
   assert.deepEqual(contract.composeLifeIdentity(content, input), contract.composeLifeIdentity(content, input));
   assert.throws(() => contract.composeLifeIdentity(content, { ...input, genderId: 'missing_gender' }), /Unknown Gender/);
   assert.throws(() => contract.composeLifeIdentity(content, { ...input, zodiacSignId: 'missing_zodiac' }), /Unknown Zodiac/);
-  assert.deepEqual(contract.composeLifeIdentity(content, input).parentJobIds, input.parentJobIds);
+  assert.deepEqual(contract.composeLifeIdentity(content, input).parentJobIds, ['job_service', 'job_technical']);
   assert.throws(
-    () => contract.composeLifeIdentity(content, { ...input, parentJobIds: ['job_teacher', 'missing_job'] }),
-    /Unknown Parent Job/,
+    () => contract.composeLifeIdentity(content, { ...input, parentJobIds: ['job_service', 'job_technical'] }),
+    /must not override Parent Job/i,
   );
 });
 
-test('every Parent Job can be combined independently with a Family identity slot', () => {
+test('every Parent Job fixture is represented through its authoritative parent NPC', () => {
   const content = loadFixture();
-  const family = content.families.find((item) => item.parentNpcIds.length === 2);
-  for (const job of content.parentJobs) {
-    const selection = contract.composeLifeIdentity(content, {
+  const observedJobIds = new Set();
+  for (const family of content.families) {
+    const identity = contract.composeLifeIdentity(content, {
       familyId: family.id,
       genderId: content.genders[0].id,
       zodiacSignId: content.zodiacSigns[0].id,
-      parentJobIds: [job.id, content.parentJobs[0].id],
     });
-    assert.equal(selection.parentJobIds[0], job.id);
+    const npcJobIds = family.parentNpcIds.map((npcId) => content.npcs.find((npc) => npc.id === npcId).parentJobId);
+    assert.deepEqual(identity.parentJobIds, npcJobIds);
+    npcJobIds.forEach((id) => observedJobIds.add(id));
   }
+  assert.deepEqual(observedJobIds, new Set(content.parentJobs.map((job) => job.id)));
 });
 
 test('the actual parser enforces Schema extra fields, IDs, required fields, enums, and array limits', () => {
