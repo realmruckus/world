@@ -80,3 +80,8 @@ test('identity confirmation closes the builder and the profile consumes ProfileC
   assert.match(app, /profileCard\.identity\.genderId/);
   assert.match(app, /profileCard\.identity\.zodiacSignId/);
 });
+
+test('placeholder identity stays an explicit UI draft and never overrides authoritative Parent Job fields', () => {
+  assert.match(app, /uiPrototype\s*=\s*\{\s*status:\s*'draft'/);
+  assert.doesNotMatch(app, /Object\.assign\(life\.identity,\s*\{[\s\S]*?parentJobIds:/);
+});

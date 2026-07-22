@@ -127,20 +127,25 @@ export function identityBuilderView(builder) {
 export function createProfileCardViewModel(life) {
   if (!life || typeof life !== 'object') throw new Error('Life state is required');
   const identity = life.identity || {};
-  const parentJobIds = Array.isArray(identity.parentJobIds) ? [...identity.parentJobIds] : [];
+  const uiPrototype = identity.uiPrototype?.status === 'draft' ? identity.uiPrototype : null;
+  const displayIdentity = uiPrototype || identity;
+  const parentJobIds = Array.isArray(displayIdentity.parentJobIds) ? [...displayIdentity.parentJobIds] : [];
+  const assetId = identity.assetId || 'placeholder:profile:portrait';
+  if (typeof assetId !== 'string' || !assetId.startsWith('placeholder:')) throw new Error('Profile assetId must be a placeholder Asset ID');
   const totalWeeks = Number(life.clock?.totalWeeks || 0);
   if (!Number.isInteger(totalWeeks) || totalWeeks < 0) throw new Error('Profile totalWeeks must be a non-negative integer');
   return freeze({
     kind: 'profile-card',
-    assetId: identity.assetId || 'placeholder:profile:portrait',
+    assetId,
     name: identity.name || '',
     ageYears: Math.floor(totalWeeks / 52),
     weekOfYear: totalWeeks % 52,
     stage: life.clock?.stage || 'life',
     identity: {
-      genderId: identity.genderId || identity.gender || null,
-      zodiacSignId: identity.zodiacSignId || null,
-      familyId: identity.familyId || null,
+      status: uiPrototype ? 'draft' : 'formal',
+      genderId: displayIdentity.genderId || identity.gender || null,
+      zodiacSignId: displayIdentity.zodiacSignId || null,
+      familyId: displayIdentity.familyId || null,
       parentJobIds,
       birthday: identity.birthMonth && identity.birthDay ? { month: identity.birthMonth, day: identity.birthDay } : null,
     },
@@ -277,5 +282,5 @@ export function restoreLifeInteractionState(snapshot, currentOffer) {
   const ids = new Set(currentOffer.cards.map((item) => item.choiceId));
   if (snapshot.detailChoiceId && !ids.has(snapshot.detailChoiceId)) throw new Error('Unknown detail choice in restored state');
   if (snapshot.focusChoiceId && !ids.has(snapshot.focusChoiceId)) throw new Error('Unknown focus choice in restored state');
-  return freeze({ ...clone(snapshot), offer: clone(currentOffer), submissionStatus: 'idle', mulliganStatus: 'idle' });
+  return freeze({ ...clone(snapshot), offer: clone(currentOffer) });
 }

@@ -117,6 +117,17 @@ test('ProfileCardViewModel reads identity and current state without mutating the
   assert.equal(view.ageYears, 1);
 });
 
+test('ProfileCardViewModel keeps RR-113 identity as an explicit draft preview and rejects formal assets', () => {
+  const life = {
+    identity: { name: 'Preview', uiPrototype: { status: 'draft', genderId: 'gender_a', zodiacSignId: 'aries', familyId: 'family_a', parentJobIds: ['job_a'] } },
+    clock: { totalWeeks: 0, stage: 'life' }, career: {}, finance: {}, health: {}, relationships: [],
+  };
+  const view = createProfileCardViewModel(life);
+  assert.equal(view.identity.status, 'draft');
+  assert.equal(view.identity.parentJobIds[0], 'job_a');
+  assert.throws(() => createProfileCardViewModel({ ...life, identity: { ...life.identity, assetId: 'approved:portrait' } }), /placeholder Asset ID/i);
+});
+
 test('LifeChoiceCardViewModel is strict, display-ready, and carries a disabled reason', () => {
   const disabled = card('locked', { state: 'disabled', disabledReason: 'Requirement not met' });
   assert.equal(disabled.choiceId, 'locked');
@@ -174,3 +185,15 @@ test('empty offers, stale mulligans, and missing restored focus fail closed', ()
   assert.throws(() => restoreLifeInteractionState(stale, offer), /unknown detail choice/i);
 });
 
+test('refresh restoration preserves in-flight guards instead of allowing resubmission', () => {
+  const offer = createLifeOffer({ offerId: 'offer-5', revision: 1, mulligansRemaining: 1, cards: [card('a')] });
+  const submitting = playLifeChoice(createLifeInteractionState({ offer }), 'a').state;
+  const restoredSubmission = restoreLifeInteractionState(JSON.parse(JSON.stringify(submitting)), offer);
+  assert.equal(restoredSubmission.submissionStatus, 'submitting');
+  assert.throws(() => playLifeChoice(restoredSubmission, 'a'), /already submitting/i);
+
+  const requesting = requestMulligan(createLifeInteractionState({ offer })).state;
+  const restoredMulligan = restoreLifeInteractionState(JSON.parse(JSON.stringify(requesting)), offer);
+  assert.equal(restoredMulligan.mulliganStatus, 'requesting');
+  assert.throws(() => requestMulligan(restoredMulligan), /already requesting/i);
+});

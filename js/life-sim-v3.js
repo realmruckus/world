@@ -64,12 +64,13 @@ function createNewLife(selections = {}) {
   const identity = generatedChineseIdentity(seed);
   const life = createLifeStateV3({ id:`life-${seed}`, seed, name:identity.name, birthYear:2000, region:'现实城市', createdAt:new Date().toISOString() });
   Object.assign(life.identity, identity);
-  Object.assign(life.identity, {
+  life.identity.uiPrototype = {
+    status: 'draft',
     genderId: selections.gender || null,
     zodiacSignId: selections.zodiac || null,
     familyId: selections.family || null,
     parentJobIds: [selections.parentJobPrimary, selections.parentJobSecondary].filter(Boolean),
-  });
+  };
   return life;
 }
 
