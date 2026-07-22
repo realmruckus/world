@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "status": "completed",
+  "requestedLifeCount": 10000,
+  "executedLifeCount": 10000,
+  "failedLifeCount": 0,
+  "seed": {
+    "strategy": "consecutive_integer",
+    "start": 119000,
+    "end": 128999
+  },
+  "policyVersion": "rr-120-adapter-v1",
+  "contentVersion": "life-engine-content-v3",
+  "contractVersion": 1,
+  "ageBandEventCoverage": {
+    "child": {
+      "declaredEventCount": 17,
+      "observedUniqueEventCount": 3,
+      "observedOccurrenceCount": 570000
+    },
+    "teen": {
+      "declaredEventCount": 17,
+      "observedUniqueEventCount": 3,
+      "observedOccurrenceCount": 570000
+    },
+    "adult": {
+      "declaredEventCount": 20,
+      "observedUniqueEventCount": 6,
+      "observedOccurrenceCount": 780000
+    },
+    "middle_age": {
+      "declaredEventCount": 18,
+      "observedUniqueEventCount": 4,
+      "observedOccurrenceCount": 760000
+    },
+    "older_adult": {
+      "declaredEventCount": 18,
+      "observedUniqueEventCount": 4,
+      "observedOccurrenceCount": 760000
+    }
+  },
+  "relationshipPathDistribution": {
+    "active": 10000
+  },
+  "endingDistribution": {
+    "ordinary_complete": 10000
+  },
+  "errorSummary": {},
+  "simulationSummary": {
+    "endingDistribution": {
+      "ordinary_complete": 10000
+    },
+    "deathCauseDistribution": {
+      "old_age": 10000
+    },
+    "eventFrequency": {
+      "annual_quiet_year": 530000,
+      "annual_first_day_school": 10000,
+      "annual_study_habit": 30000,
+      "annual_exam_choice": 10000,
+      "annual_first_job": 10000,
+      "annual_work_growth": 70000,
+      "annual_financial_plan": 80000,
+      "annual_health_check": 80000
+    },
+    "careerDistribution": {
+      "starter_job": 5000,
+      "none": 5000
+    },
+    "relationshipStatusDistribution": {
+      "active": 17984
+    },
+    "relationshipPathDistribution": {
+      "active": 10000
+    },
+    "achievementFrequency": {},
+    "averageTurns": 82,
+    "averageLifeScore": 32.2216,
+    "eventCoverageRate": 0.36363636363636365,
+    "repeatRate": 0.9085365853658537,
+    "romanceStallRate": 0,
+    "invalidChoiceRate": 0,
+    "achievementUnlockRate": 0,
+    "metricAverages": {
+      "achievement": 9,
+      "adventure": 4,
+      "autonomy": 98,
+      "businessSuccess": 0,
+      "careerGrowth": 28,
+      "contribution": 10,
+      "creativeLegacy": 0,
+      "creativeWorksScore": 0,
+      "debtBurden": 60,
+      "educationGrowth": 8,
+      "familyLegacy": 40,
+      "familyStability": 57,
+      "financialSecurity": 54,
+      "freeTime": 63,
+      "freedom": 60,
+      "friendCount": 0,
+      "friendshipSupport": 0,
+      "goalsCompleted": 0,
+      "health": 68,
+      "incomeStability": 65,
+      "knowledge": 35,
+      "legacy": 10,
+      "lifeVariety": 8,
+      "lifelongLearning": 10,
+      "money": 57,
+      "normalizedNetAssets": 55,
+      "partnerSupport": 0,
+      "peopleHelped": 0,
+      "peopleHelpedScore": 0,
+      "publicContribution": 0,
+      "regionVariety": 0,
+      "relationship": 26,
+      "reputation": 0,
+      "riskTurnsScore": 0
+    },
+    "lifeCount": 10000,
+    "uniqueEventCount": 8
+  }
+}

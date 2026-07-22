@@ -7,6 +7,9 @@ on:
       - 'life-sim.html'
       - 'js/life-*.js'
       - 'data/life-*.json'
+      - 'data/fixtures/life-*.json'
+      - 'schemas/life-*.json'
+      - 'scripts/run-life-content-simulation-v1.mjs'
       - 'tests/life-*.test.mjs'
       - '.github/workflows/life-engine-tests.yml'
   pull_request:
@@ -14,6 +17,9 @@ on:
       - 'life-sim.html'
       - 'js/life-*.js'
       - 'data/life-*.json'
+      - 'data/fixtures/life-*.json'
+      - 'schemas/life-*.json'
+      - 'scripts/run-life-content-simulation-v1.mjs'
       - 'tests/life-*.test.mjs'
       - '.github/workflows/life-engine-tests.yml'
 
@@ -34,6 +40,12 @@ jobs:
         run: node tests/life-engine-v3.test.mjs
       - name: Test Experience Instance Identity
         run: node tests/life-experience-identity-v3.test.mjs
+      - name: Test Life Content Contracts
+        run: node tests/life-content-contract-v1.test.mjs
+      - name: Test RR-119 Contract Corrections
+        run: node --test tests/life-content-contract-rr119.test.mjs tests/life-content-simulation-adapter-v1.test.mjs
+      - name: Test RR-120 Corrections
+        run: node --test tests/life-content-rr120.test.mjs
       - name: Test Annual Event Vertical Slice
         run: node tests/life-event-engine-v3.test.mjs
       - name: Test Romance Stage Vertical Slice
@@ -46,5 +58,7 @@ jobs:
         run: node tests/life-save-achievement-v3.test.mjs
       - name: Test Deterministic Simulation
         run: node tests/life-simulation-v3.test.mjs
+      - name: Run RR-120 10,000 Life Simulation
+        run: node scripts/run-life-content-simulation-v1.mjs --count 10000 --workers 4 --output /tmp/life-content-simulation-10000-v1.json
       - name: Test UI View Models
         run: node tests/life-ui-model-v3.test.mjs

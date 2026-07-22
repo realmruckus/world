@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://world.realmruckus.com/schemas/life-content-contract-v1.schema.json",
+  "title": "RR-119 Life Content Fixture Contract v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "status", "origins", "families", "parentJobs", "genders", "zodiacSigns",
+    "ageBands", "events", "npcs", "relationshipStates", "relationshipTransitions", "metrics", "endings"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "status": { "enum": ["fixture", "draft"] },
+    "origins": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/origin" } },
+    "families": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/family" } },
+    "parentJobs": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/parentJob" } },
+    "genders": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/idOnly" } },
+    "zodiacSigns": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/idOnly" } },
+    "ageBands": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/ageBand" } },
+    "events": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/eventFixture" } },
+    "npcs": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/npc" } },
+    "relationshipStates": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/idOnly" } },
+    "relationshipTransitions": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/transition" } },
+    "metrics": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/idOnly" } },
+    "endings": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/ending" } }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+    "displayKey": { "type": "string", "pattern": "^[a-z][a-z0-9_.]*$" },
+    "idOnly": {
+      "type": "object", "additionalProperties": false, "required": ["id"],
+      "properties": { "id": { "$ref": "#/$defs/id" } }
+    },
+    "resourceScore": { "type": "number", "minimum": 0, "maximum": 100 },
+    "nonNegative": { "type": "number", "minimum": 0 },
+    "resources": {
+      "type": "object", "additionalProperties": false,
+      "required": ["wealth", "education", "familySupport", "socialConnections", "healthEnvironment"],
+      "properties": {
+        "wealth": { "$ref": "#/$defs/resourceScore" },
+        "education": { "$ref": "#/$defs/resourceScore" },
+        "familySupport": { "$ref": "#/$defs/resourceScore" },
+        "socialConnections": { "$ref": "#/$defs/resourceScore" },
+        "healthEnvironment": { "$ref": "#/$defs/resourceScore" }
+      }
+    },
+    "finance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["income", "cash", "assets", "debt", "fixedExpenses"],
+      "properties": {
+        "income": { "$ref": "#/$defs/nonNegative" },
+        "cash": { "$ref": "#/$defs/nonNegative" },
+        "assets": { "$ref": "#/$defs/nonNegative" },
+        "debt": { "$ref": "#/$defs/nonNegative" },
+        "fixedExpenses": { "$ref": "#/$defs/nonNegative" }
+      }
+    },
+    "origin": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "familyId", "resources", "finance"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "familyId": { "$ref": "#/$defs/id" },
+        "resources": { "$ref": "#/$defs/resources" },
+        "finance": { "$ref": "#/$defs/finance" }
+      }
+    },
+    "family": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "type", "parentNpcIds"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": { "$ref": "#/$defs/id" },
+        "parentNpcIds": { "type": "array", "minItems": 1, "maxItems": 2, "uniqueItems": true, "items": { "$ref": "#/$defs/id" } }
+      }
+    },
+    "parentJob": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "displayNameKey", "sector", "incomeBand"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "displayNameKey": { "$ref": "#/$defs/displayKey" },
+        "sector": { "$ref": "#/$defs/id" },
+        "incomeBand": { "enum": ["none", "low", "medium", "high"] }
+      }
+    },
+    "npc": {
+      "type": "object", "additionalProperties": false, "required": ["id", "role", "parentJobId"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "role": { "$ref": "#/$defs/id" },
+        "parentJobId": { "$ref": "#/$defs/id" }
+      }
+    },
+    "ageBand": {
+      "type": "object", "additionalProperties": false, "required": ["id", "minAge", "maxAge"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "minAge": { "type": "integer", "minimum": 0, "maximum": 120 },
+        "maxAge": { "type": "integer", "minimum": 0, "maximum": 120 }
+      }
+    },
+    "eventFixture": {
+      "type": "object", "additionalProperties": false, "required": ["id", "ageBandId"],
+      "properties": { "id": { "$ref": "#/$defs/id" }, "ageBandId": { "$ref": "#/$defs/id" } }
+    },
+    "transition": {
+      "type": "object", "additionalProperties": false, "required": ["id", "from", "to", "intent", "kind"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "from": { "$ref": "#/$defs/id" },
+        "to": { "$ref": "#/$defs/id" },
+        "intent": { "$ref": "#/$defs/id" },
+        "kind": { "enum": ["upgrade", "pause", "crisis", "recovery", "breakup", "no_contact"] }
+      }
+    },
+    "ending": {
+      "type": "object", "additionalProperties": false, "required": ["id", "metricIds"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "metricIds": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/id" } }
+      }
+    }
+  }
+}

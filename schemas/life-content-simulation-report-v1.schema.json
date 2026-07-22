@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://world.realmruckus.com/schemas/life-content-simulation-report-v1.schema.json",
+  "title": "RR-119 Life Content Simulation Report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "status", "requestedLifeCount", "executedLifeCount", "failedLifeCount",
+    "seed", "policyVersion", "contentVersion", "contractVersion", "ageBandEventCoverage",
+    "relationshipPathDistribution", "endingDistribution", "errorSummary", "simulationSummary"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "status": { "enum": ["completed", "completed_with_errors", "failed"] },
+    "requestedLifeCount": { "type": "integer", "minimum": 1 },
+    "executedLifeCount": { "type": "integer", "minimum": 0 },
+    "failedLifeCount": { "type": "integer", "minimum": 0 },
+    "seed": {
+      "type": "object", "additionalProperties": false,
+      "required": ["strategy", "start", "end"],
+      "properties": {
+        "strategy": { "const": "consecutive_integer" },
+        "start": { "type": "integer" },
+        "end": { "type": "integer" }
+      }
+    },
+    "policyVersion": { "type": "string" },
+    "contentVersion": { "type": "string" },
+    "contractVersion": { "const": 1 },
+    "ageBandEventCoverage": { "type": "object" },
+    "relationshipPathDistribution": { "type": "object" },
+    "endingDistribution": { "type": "object" },
+    "errorSummary": { "type": "object" },
+    "simulationSummary": { "type": "object" }
+  }
+}
